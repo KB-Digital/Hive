@@ -172,7 +172,14 @@ td{padding:10px 12px;border-bottom:1px solid #1e293b08;vertical-align:middle}tr:
 <body>
 
 <!-- Loading -->
-<div class="loading-screen" id="loadingScreen"><div class="spinner"></div><div style="color:#64748b;font-size:14px">Loading Hive...</div></div>
+<div class="loading-screen" id="loadingScreen">
+  <div style="position:relative;width:56px;height:56px;margin-bottom:4px">
+    <div class="spinner" style="width:56px;height:56px;border-width:3px"></div>
+    <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐝</div>
+  </div>
+  <div style="color:#e2e8f0;font-size:15px;font-weight:600;margin-bottom:4px">Loading Hive...</div>
+  <div style="color:#64748b;font-size:12px">Connecting to Firebase</div>
+</div>
 
 <!-- Auth Screen -->
 <div class="auth-screen" id="authScreen" style="display:none">
@@ -646,7 +653,41 @@ function showScreen(s){$("loadingScreen").style.display="none";$("authScreen").s
 
 $("googleSignIn").addEventListener("click",async()=>{try{const provider=new firebase.auth.GoogleAuthProvider();try{await auth.signInWithPopup(provider)}catch(popupErr){if(popupErr.code==="auth/popup-blocked"||popupErr.code==="auth/popup-closed-by-user"){await auth.signInWithRedirect(provider)}else{throw popupErr}}}catch(e){$("authError").textContent=e.message;$("authError").classList.add("show")}});
 
-auth.onAuthStateChanged(async(user)=>{if(!user){showScreen("auth");return}currentUser=user;showScreen("loading");try{const ud=await db.collection("users").doc(user.uid).get();if(ud.exists&&ud.data().householdId){householdId=ud.data().householdId;loadHousehold()}else{showHouseholdSetup()}}catch(e){console.error(e);$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#e2e8f0;font-size:16px;margin-bottom:8px">Connection Error</div><div style="color:#64748b;font-size:13px;margin-bottom:16px">'+e.message+'</div><button onclick="location.reload()" style="padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Retry</button></div>'}});
+// Handle redirect result first (mobile Google Sign-In)
+auth.getRedirectResult().then(result=>{
+  if(result&&result.user){/* redirect sign-in completed, onAuthStateChanged will fire */}
+}).catch(e=>{
+  console.warn("Redirect result error:",e.code,e.message);
+  // Don't block — onAuthStateChanged handles the auth state
+});
+
+// Timeout: if stuck on loading for 12s, show error with options
+let authResolved=false;
+setTimeout(()=>{
+  if(!authResolved){
+    $("loadingScreen").innerHTML='<div style="text-align:center;padding:20px;max-width:360px"><div style="font-size:40px;margin-bottom:12px">🐝</div><div style="color:#e2e8f0;font-size:17px;font-weight:700;margin-bottom:8px">Taking a while...</div><div style="color:#64748b;font-size:13px;margin-bottom:20px;line-height:1.6">This usually means Firebase can't connect, or your Netlify domain hasn't been added to Firebase Auth. Make sure your site URL is listed in Firebase Console → Authentication → Settings → Authorized domains.</div><div style="display:flex;flex-direction:column;gap:10px"><button onclick="location.reload()" style="padding:10px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🔄 Retry</button><button onclick="firebase.auth().signOut().then(()=>location.reload())" style="padding:10px 20px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer">Sign out &amp; try again</button></div></div>';
+  }
+},12000);
+
+auth.onAuthStateChanged(async(user)=>{
+  authResolved=true;
+  if(!user){showScreen("auth");return}
+  currentUser=user;
+  showScreen("loading");
+  try{
+    const ud=await db.collection("users").doc(user.uid).get();
+    if(ud.exists&&ud.data().householdId){
+      householdId=ud.data().householdId;
+      loadHousehold();
+    }else{
+      showHouseholdSetup();
+    }
+  }catch(e){
+    console.error(e);
+    const isOffline=e.code==="unavailable"||e.message?.includes("offline")||e.message?.includes("network");
+    $("loadingScreen").innerHTML='<div style="text-align:center;padding:20px;max-width:360px"><div style="font-size:40px;margin-bottom:12px">'+(isOffline?"📡":"⚠️")+'</div><div style="color:#e2e8f0;font-size:16px;font-weight:700;margin-bottom:8px">'+(isOffline?"No connection":"Something went wrong")+'</div><div style="color:#64748b;font-size:13px;margin-bottom:16px;line-height:1.6">'+e.message+'</div><div style="display:flex;flex-direction:column;gap:8px"><button onclick="location.reload()" style="padding:10px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:600">🔄 Retry</button><button onclick="firebase.auth().signOut().then(()=>location.reload())" style="padding:10px 20px;background:transparent;color:#64748b;border:1px solid #334155;border-radius:8px;font-size:13px;cursor:pointer">Sign out</button></div></div>';
+  }
+});
 
 function showHouseholdSetup(){showScreen("household");const bar=$("userBar");bar.innerHTML="";if(currentUser.photoURL)bar.append(h("img",{src:currentUser.photoURL,style:{width:"36px",height:"36px",borderRadius:"50%"}}));bar.append(h("div",{},h("div",{style:{fontWeight:600,fontSize:"14px"}},currentUser.displayName||""),h("div",{style:{fontSize:"11px",color:"#64748b"}},currentUser.email||"")));bar.append(h("button",{className:"signout-btn",onClick:()=>auth.signOut()},"Sign Out"));$("householdOptions").style.display="";$("createForm").style.display="none";$("joinForm").style.display="none"}
 
@@ -659,7 +700,37 @@ $("createConfirmBtn").addEventListener("click",async()=>{const name=$("household
 
 $("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:"child",avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";render()});tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));render()});showScreen("app")}
+function loadHousehold(){
+  if(householdUnsub)householdUnsub();
+  if(tasksUnsub)tasksUnsub();
+  showScreen("app");
+  householdUnsub=db.collection("households").doc(householdId).onSnapshot(
+    doc=>{
+      if(!doc.exists){
+        // Household was deleted — send back to setup
+        showHouseholdSetup();
+        return;
+      }
+      currentHousehold=doc.data();
+      S.members=currentHousehold.members||[];
+      S.rewards=currentHousehold.rewards||[...DR];
+      $("householdNameLabel").textContent=currentHousehold.name||"";
+      render();
+    },
+    err=>{
+      console.error("Household snapshot error:",err);
+      if(err.code==="permission-denied"){
+        // User lost access — back to setup
+        db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete()}).catch(()=>{});
+        showHouseholdSetup();
+      }
+    }
+  );
+  tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(
+    snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));render();},
+    err=>{console.error("Tasks snapshot error:",err);}
+  );
+}
 
 function allowanceMod(startTab){let enabled=getAllowanceEnabled();let rate=getAllowanceRate()||0.10;let memberRates={...( currentHousehold?.memberRates||{})};let tab=startTab||"settings";const bd=h("div",{className:"mbd"});
 function rr(){bd.innerHTML="";
