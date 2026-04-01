@@ -222,6 +222,7 @@ Sign in with Google
 <button class="report-btn" id="reportBtn">📊 Export Spreadsheet</button>
 <button class="add-btn" id="addTaskBtn">+ Add New Task</button>
 <button class="report-btn" id="settingsBtn">⚙️ Household Settings</button>
+<button class="report-btn" id="switchUserBtn">👤 Switch User</button>
 </div>
 </aside>
 <main class="main">
@@ -285,9 +286,24 @@ const gm=n=>S.members.find(m=>m.name===n);
 const AVATARS=["🧑","👩","👨","👧","👦","🧒","👶","🐶","🐱","🦊","🐻","🐼","🦁","🐸","🐵","🦄","🐝","🐞","🦋","🐢","🤖","👽","👻","🧙","🦸","🧜","🎅","👸"];
 function avEl(member,size){const sz=size||32;const fs=Math.round(sz*0.44);if(!member)return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:fs+"px",fontWeight:700,color:"#fff",flexShrink:0}},"?");if(member.photo){return h("img",{src:member.photo,style:{width:sz+"px",height:sz+"px",borderRadius:"50%",objectFit:"cover",flexShrink:0}})}if(member.avatar){return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:member.color||"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:Math.round(sz*0.55)+"px",flexShrink:0}},member.avatar)}return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:member.color||"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:fs+"px",fontWeight:700,color:"#fff",flexShrink:0}},member.name.charAt(0).toUpperCase())}
 const gi=()=>Date.now()+Math.random();
-function isParent(){if(!currentUser)return false;const me=S.members.find(m=>m.uid===currentUser.uid);return me?me.role==="parent":true}
-function isTeacher(){if(!currentUser)return false;const me=S.members.find(m=>m.uid===currentUser.uid);return me?me.role==="teacher":false}
-function getMyRole(){if(!currentUser)return "parent";const me=S.members.find(m=>m.uid===currentUser.uid);return me?.role||"parent"}
+function isParent(){const me=getMe();return me?me.role==="parent":true}
+function isTeacher(){const me=getMe();return me?me.role==="teacher":false}
+function getMyRole(){const me=getMe();return me?.role||"parent"}
+// Device member override — lets a child use a parent's device as themselves
+let deviceMemberName=localStorage.getItem("hive_device_member")||"";
+function getMe(){if(deviceMemberName){const dm=S.members.find(m=>m.name===deviceMemberName);if(dm)return dm}if(!currentUser)return null;return S.members.find(m=>m.uid===currentUser.uid)||null}
+function setDeviceMember(name){deviceMemberName=name;if(name){localStorage.setItem("hive_device_member",name)}else{localStorage.removeItem("hive_device_member")}const dm=S.members.find(m=>m.name===name);if(dm&&dm.role==="child"){S.view="kids";S.kidsFilter=name}render()}
+function clearDeviceMember(){deviceMemberName="";localStorage.removeItem("hive_device_member");render()}
+function deviceMemberPicker(force){const bd=h("div",{className:"mbd"});
+bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"👋"),h("div",{style:{fontSize:"20px",fontWeight:700,marginBottom:"4px"}},"Who's using this device?"),h("div",{style:{fontSize:"13px",color:"#64748b"}},"Pick your name to see your tasks, points, and messages")));
+const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"10px",marginBottom:"16px"}});
+S.members.filter(m=>m.role!=="teacher").forEach(m=>{grid.append(h("button",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",padding:"16px 8px",borderRadius:"14px",border:"2px solid "+m.color+"44",background:m.color+"11",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"},onClick:()=>{setDeviceMember(m.name);ov_.remove()}},avEl(m,48),h("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--txt)"}},m.name),h("span",{style:{fontSize:"10px",color:"var(--mut)",textTransform:"capitalize"}},m.role||"member")))});
+bd.append(grid);
+const ft=h("div",{className:"mft"});
+if(!force)ft.append(h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"));
+ft.append(h("button",{className:"bs",style:{color:"#64748b"},onClick:()=>{clearDeviceMember();ov_.remove()}},"Use signed-in account"));
+const m=h("div",{className:"modal",style:{maxWidth:"480px"}},h("div",{className:"mhd"},h("h3",{style:{margin:0}},"👤 Select User"),h("button",{className:"ib",style:{display:force?"none":""},onClick:()=>ov_.remove()},"✕")),bd,ft);
+const ov_=showMod(m)}
 function getMemberRole(name){const m=gm(name);return m?.role||"parent"}
 function addToCal(task){const d=task.dueDate.replace(/-/g,"");const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Hive//Task//EN","BEGIN:VEVENT","DTSTART;VALUE=DATE:"+d,"DTEND;VALUE=DATE:"+d,"SUMMARY:"+task.title,"DESCRIPTION:"+(task.description||"")+" ["+task.priority+"] Owner: "+task.owner+(task.points?" | "+task.points+" pts":""),"STATUS:"+(task.status==="Complete"?"COMPLETED":"NEEDS-ACTION"),"END:VEVENT","END:VCALENDAR"].join("\r\n");const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=task.title.replace(/[^a-zA-Z0-9]/g,"-")+".ics";document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function tpdBadge(task){const tpd=task.timesPerDay||1;if(tpd<=1)return null;const ct=task.completedToday||0;const done=task.status==="Complete"?tpd:ct;const allDone=done>=tpd;return h("button",{style:{display:"inline-flex",alignItems:"center",gap:"4px",padding:"2px 8px",borderRadius:"10px",border:"1px solid "+(allDone?"#22c55e44":"#f59e0b44"),background:allDone?"#22c55e18":"#f59e0b18",color:allDone?"#22c55e":"#f59e0b",fontSize:"11px",fontWeight:700,cursor:allDone?"default":"pointer",fontFamily:"inherit"},onClick:()=>{if(!allDone)quickComplete(task.id)}},allDone?"✓ "+tpd+"/"+tpd:done+"/"+tpd+" ✓ tap")}
@@ -574,7 +590,7 @@ const lc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:
 const rc=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},h("h3",{className:"dct",style:{marginBottom:0}},"🎁 Rewards Shop"),h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:rewardsMod},"Edit Rewards")));const rg=h("div",{className:"rg"});S.rewards.forEach(rw=>{const ca=lb.filter(m=>m.points>=rw.pointsCost);const card=h("div",{className:"rc"},h("div",{className:"ri"},rw.icon),h("div",{className:"rn"},rw.name),h("div",{className:"rcost"},rw.pointsCost+" pts"));if(ca.length)ca.forEach(m=>card.append(h("button",{className:"clb",onClick:()=>{if(confirm(m.name+' claims "'+rw.name+'" for '+rw.pointsCost+" pts?")){db.collection("households").doc(householdId).collection("tasks").add({title:"🎁 Claimed: "+rw.name,priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Complete",category:"Kids & Family",owner:m.name,dueDate:td(),description:"Reward redeemed",points:-rw.pointsCost,completedBy:"",recurring:"none"})}}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name+" can claim")));else card.append(h("div",{style:{fontSize:"10px",color:"#475569",marginTop:"6px"}},"Not enough points yet"));rg.append(card)});rc.append(rg);w.append(rc);return w}
 function rKids(){const tdy=td();
 // Find current user's member or let them pick
-const me=S.members.find(m=>m.uid===currentUser?.uid);
+const me=getMe();
 let kidName=S.kidsFilter||me?.name||S.members[0]?.name||"";
 const myTasks=S.tasks.filter(t=>t.owner===kidName&&t.dueDate===tdy&&t.status!=="Complete").sort((a,b)=>PRIORITIES.indexOf(a.priority)-PRIORITIES.indexOf(b.priority));
 const doneTasks=S.tasks.filter(t=>t.owner===kidName&&t.dueDate===tdy&&t.status==="Complete"&&!t.pendingApproval);
@@ -667,7 +683,7 @@ else{w.append(h("div",{style:{textAlign:"center",padding:"24px",color:"#334155",
 return w}
 function sendMsg(thread,text,urgent,taggedTaskId,mentions){
 if(!householdId||!text.trim())return;
-const me=S.members.find(m=>m.uid===currentUser?.uid);
+const me=getMe();
 const uid=currentUser?.uid||"";
 const msg={thread,text:text.trim(),sender:me?.name||currentUser?.displayName||"Unknown",senderUid:uid,senderColor:me?.color||"#64748b",senderRole:me?.role||"parent",timestamp:firebase.firestore.FieldValue.serverTimestamp(),urgent:!!urgent,taggedTaskId:taggedTaskId||"",mentions:mentions||[],readBy:uid?[uid]:[]};
 db.collection("households").doc(householdId).collection("messages").add(msg).catch(e=>console.error("Send failed:",e))}
@@ -676,7 +692,7 @@ function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
 function canSeeThread(tid,myName,myRole){if(tid==="general")return myRole!=="teacher";if(tid.startsWith("teacher_"))return tid==="teacher_"+myName||myRole!=="teacher";if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
 function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
 const teachers=S.members.filter(m=>m.role==="teacher");
-const myRole=getMyRole();const me=S.members.find(m=>m.uid===currentUser?.uid);const myName=me?.name||"";
+const myRole=getMyRole();const me=getMe();const myName=me?.name||"";
 // Build all possible threads
 const allThreads=[];
 if(myRole!=="teacher")allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6"});
@@ -835,7 +851,7 @@ dt.forEach(t=>{const mc=gm(t.owner)?.color||"#64748b";tasks.append(h("div",{clas
 if(!dt.length)tasks.append(h("div",{style:{fontSize:"11px",color:"#334155",textAlign:"center",padding:"8px"}},"—"));col.append(tasks);g.append(col)});w.append(g);return w}
 function render(){const myRole=getMyRole();const teacherMode=myRole==="teacher";const visibleViews=teacherMode?VIEWS.filter(v=>v.id==="school"||v.id==="messages"):VIEWS;
 if(teacherMode&&!visibleViews.find(v=>v.id===S.view)){S.view="school"}
-const nav=$("sidebarNav");nav.innerHTML="";const myN=S.members.find(m=>m.uid===currentUser?.uid)?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
+const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
 visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;nav.append(h("button",{className:"nav-item"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},h("span",{style:{fontSize:"16px",width:"20px",textAlign:"center"}},v.icon),v.label,unread?h("span",{style:{marginLeft:"auto",background:"#ef4444",color:"#fff",fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"10px",minWidth:"18px",textAlign:"center"}},String(unread)):null))});const tabs=$("mobileTabs");tabs.innerHTML="";visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;tabs.append(h("button",{className:"mobile-tab"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},v.icon+" "+v.label+(unread?" ("+unread+")":"")))});$("memberCount").textContent=S.members.length;const av=$("memberAvatars");av.innerHTML="";S.members.slice(0,5).forEach(m=>av.append(avEl(m,24)));const v=visibleViews.find(x=>x.id===S.view)||visibleViews[0];$("viewTitle").textContent=v.icon+" "+v.label+" View";$("topDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
 // Hide sidebar buttons for teachers
 $("addTaskBtn").style.display=teacherMode?"none":"";
@@ -843,7 +859,7 @@ $("reportBtn").style.display=teacherMode?"none":"";
 $("pdfBtn").style.display=teacherMode?"none":"";
 $("membersBtn").style.display=teacherMode?"none":"";
 // User chip
-const uc=$("userChip");uc.innerHTML="";if(currentUser){const me=S.members.find(m=>m.uid===currentUser.uid);if(me){uc.append(avEl(me,22));uc.append(h("span",{},me.name))}else{uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"))}uc.onclick=()=>settingsMod()}
+const uc=$("userChip");uc.innerHTML="";const chipMe=getMe();if(chipMe){uc.append(avEl(chipMe,22));uc.append(h("span",{},chipMe.name));if(deviceMemberName){uc.append(h("span",{style:{fontSize:"8px",background:"#f59e0b33",color:"#f59e0b",padding:"1px 5px",borderRadius:"6px",fontWeight:700,marginLeft:"2px"}},"👤"))}uc.onclick=()=>{if(deviceMemberName)deviceMemberPicker(false);else settingsMod()}}else if(currentUser){uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"));uc.onclick=()=>settingsMod()}
 const c=$("content");c.innerHTML="";
 // Overdue banner
 const overdueTasks=S.tasks.filter(t=>t.status!=="Complete"&&t.dueDate<td()&&!t.isGeneralEvent);
@@ -856,7 +872,7 @@ $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventL
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
 $("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("light");const isLight=document.body.classList.contains("light");$("themeToggle").textContent=isLight?"☀️":"🌙";localStorage.setItem("hive_theme",isLight?"light":"dark")});
-$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();settingsMod()});// ── Auth Flow ──
+$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();settingsMod()});$("switchUserBtn").addEventListener("click",()=>{closeSB();deviceMemberPicker(false)});// ── Auth Flow ──
 function showScreen(s){$("loadingScreen").style.display="none";$("authScreen").style.display="none";$("householdScreen").style.display="none";$("app").classList.remove("show");if(s==="loading")$("loadingScreen").style.display="flex";else if(s==="auth")$("authScreen").style.display="flex";else if(s==="household")$("householdScreen").style.display="flex";else if(s==="app")$("app").classList.add("show")}
 
 $("googleSignIn").addEventListener("click",async()=>{try{const provider=new firebase.auth.GoogleAuthProvider();try{await auth.signInWithPopup(provider)}catch(popupErr){if(popupErr.code==="auth/popup-blocked"||popupErr.code==="auth/popup-closed-by-user"){await auth.signInWithRedirect(provider)}else{throw popupErr}}}catch(e){$("authError").textContent=e.message;$("authError").classList.add("show")}});
@@ -874,7 +890,15 @@ $("createConfirmBtn").addEventListener("click",async()=>{const name=$("household
 
 $("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";render()});tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));render()});msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});render()});showScreen("app")}
+function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();let firstLoad=true;householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";
+// Validate stored device member still exists
+if(deviceMemberName&&!S.members.find(m=>m.name===deviceMemberName)){clearDeviceMember()}
+// Set kids view default if device member is a child
+const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter=dm.name}
+render();
+// Show picker on first load if no device member set and user has children
+if(firstLoad&&!deviceMemberName&&S.members.filter(m=>m.role==="child").length>0){setTimeout(()=>deviceMemberPicker(false),300)}
+firstLoad=false});tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));render()});msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});render()});showScreen("app")}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";
 async function genTeacherCode(){const tc=genCode();await db.collection("households").doc(householdId).update({teacherInviteCode:tc});await db.collection("inviteCodes").doc(tc).set({householdId,role:"teacher"});ov_.remove();settingsMod()}
