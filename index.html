@@ -162,8 +162,8 @@ td{padding:10px 12px;border-bottom:1px solid #1e293b08;vertical-align:middle}tr:
 .error-msg{color:var(--red);background:#ef444422;border:1px solid #ef444444;border-radius:8px;padding:12px;margin-top:16px;font-size:13px;display:none}
 .error-msg.show{display:block}
 .app{display:none}.app.show{display:flex}
-.hl{padding:10px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
-.hl-select{flex:1;background:linear-gradient(180deg,var(--ibg),#151d2e);border:1px solid var(--ib);border-radius:6px;padding:6px 10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;outline:none;color:var(--txt);box-shadow:0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04);appearance:auto;-webkit-appearance:auto}
+.hl{padding:8px 12px;border-bottom:1px solid var(--bdr);overflow:hidden}
+.hl-select{display:block;width:100%;max-width:196px;box-sizing:border-box;background:linear-gradient(180deg,var(--ibg),#151d2e);border:1px solid var(--ib);border-radius:6px;padding:6px 8px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;outline:none;color:var(--txt);box-shadow:0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04);text-overflow:ellipsis;overflow:hidden}
 
 </style>
 </head>
@@ -1060,11 +1060,12 @@ sel.innerHTML="";
 for(const hId of hIds){
 try{const doc=await db.collection("households").doc(hId).get();
 if(!doc.exists)continue;
-const o=h("option",{value:hId},doc.data().name||"Unnamed");
+const truncName=(n,max)=>n.length>max?n.substring(0,max-1)+"…":n;
+const o=h("option",{value:hId},truncName(doc.data().name||"Unnamed",16));
 if(hId===householdId)o.selected=true;
 sel.append(o)}catch(e){}}
 // Add "Join Another" option
-sel.append(h("option",{value:"__join__",style:{fontStyle:"italic"}},"➕ Join Another Household..."));
+sel.append(h("option",{value:"__join__"},"+ Join Household..."));
 }catch(e){sel.innerHTML="";sel.append(h("option",{},currentName))}}
 else if(!_hhSelectLoaded){sel.innerHTML="";sel.append(h("option",{},currentName))}
 else{// Just update the selected value
