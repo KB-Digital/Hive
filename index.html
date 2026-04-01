@@ -270,8 +270,8 @@ const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",la
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general"};
-let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null;
+let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general"};
+let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
 db.enablePersistence({synchronizeTabs:true}).catch(e=>{if(e.code==="failed-precondition")console.log("Persistence failed: multiple tabs open");else if(e.code==="unimplemented")console.log("Persistence not supported in this browser")});
@@ -280,6 +280,17 @@ function save(){
   if(!householdId)return;
   db.collection("households").doc(householdId).update({rewards:S.rewards}).catch(e=>console.log(e));
 }
+// Wallet helpers
+function getExchangeRate(){return currentHousehold?.exchangeRate||50}// default 50 pts = $1
+function getWalletBalance(name){return S.wallet.filter(t=>t.member===name).reduce((s,t)=>s+t.amount,0)}
+function addWalletTx(member,amount,type,note){
+if(!householdId)return;
+db.collection("households").doc(householdId).collection("wallet").add({
+member,amount,type,note,timestamp:firebase.firestore.FieldValue.serverTimestamp(),by:getMe()?.name||"System"
+}).catch(e=>console.error("Wallet tx failed:",e))}
+function setExchangeRate(rate){
+if(!householdId||!rate||rate<1)return;
+db.collection("households").doc(householdId).update({exchangeRate:rate}).catch(e=>console.error(e))}
 const $=id=>document.getElementById(id);
 const h=(t,a,...c)=>{const e=document.createElement(t);if(a)Object.entries(a).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(e.style,v);else if(k.startsWith("on"))e.addEventListener(k.slice(2).toLowerCase(),v);else if(k==="className")e.className=v;else if(k==="innerHTML")e.innerHTML=v;else e.setAttribute(k,v)});c.flat(9).forEach(x=>{if(x!=null)e.append(typeof x==="string"?document.createTextNode(x):x)});return e};
 const td=()=>new Date().toISOString().split("T")[0];
@@ -615,7 +626,49 @@ function rLB(){const lb=S.members.map(m=>({...m,points:gPts(m.name),allTime:gAll
 const atc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"⭐ All-Time Points"));const atg=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap"}});[...lb].sort((a,b)=>b.allTime-a.allTime).forEach((m,i)=>{const card=h("div",{style:{flex:1,minWidth:"100px",background:"#1e293b",borderRadius:"10px",padding:"12px 14px",textAlign:"center",border:i===0?"1px solid #eab30844":"1px solid #334155"}},h("div",{style:{fontSize:"20px",marginBottom:"4px"}},md[i]||"#"+(i+1)));const avWrap=h("div",{style:{display:"flex",justifyContent:"center",marginBottom:"6px"}});avWrap.append(avEl(m,36));card.append(avWrap,h("div",{style:{fontWeight:600,fontSize:"13px"}},m.name),h("div",{style:{fontSize:"18px",fontWeight:700,color:"#eab308",marginTop:"2px"}},String(m.allTime)),h("div",{style:{fontSize:"10px",color:"#64748b"}},"all-time pts"));atg.append(card)});atc.append(atg);w.append(atc);
 // Points Leaderboard
 const lc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"🏆 Points Leaderboard"),h("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"16px"}},"Points earned when tasks are marked Complete"));lb.forEach((m,i)=>lc.append(h("div",{className:"lr"},h("span",{className:"lrank"},md[i]||"#"+(i+1)),avEl(m,36),h("div",{style:{flex:1}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"3px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},m.name),h("span",{className:"ptb"},m.points+" pts")),h("div",{style:{height:"6px",background:"#1e293b",borderRadius:"3px",overflow:"hidden"}},h("div",{style:{width:(m.points/mp*100)+"%",height:"100%",background:m.color,borderRadius:"3px"}})),h("div",{style:{fontSize:"10px",color:"#64748b",marginTop:"2px"}},m.done+" task"+(m.done!==1?"s":"")+" completed")))));w.append(lc);
-const rc=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},h("h3",{className:"dct",style:{marginBottom:0}},"🎁 Rewards Shop"),h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:rewardsMod},"Edit Rewards")));const rg=h("div",{className:"rg"});S.rewards.forEach(rw=>{const ca=lb.filter(m=>m.points>=rw.pointsCost);const card=h("div",{className:"rc"},h("div",{className:"ri"},rw.icon),h("div",{className:"rn"},rw.name),h("div",{className:"rcost"},rw.pointsCost+" pts"));if(ca.length)ca.forEach(m=>card.append(h("button",{className:"clb",onClick:()=>{if(confirm(m.name+' claims "'+rw.name+'" for '+rw.pointsCost+" pts?")){db.collection("households").doc(householdId).collection("tasks").add({title:"🎁 Claimed: "+rw.name,priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Complete",category:"Kids & Family",owner:m.name,dueDate:td(),description:"Reward redeemed",points:-rw.pointsCost,completedBy:"",recurring:"none"})}}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name+" can claim")));else card.append(h("div",{style:{fontSize:"10px",color:"#475569",marginTop:"6px"}},"Not enough points yet"));rg.append(card)});rc.append(rg);w.append(rc);return w}
+const rc=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},h("h3",{className:"dct",style:{marginBottom:0}},"🎁 Rewards Shop"),h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:rewardsMod},"Edit Rewards")));const rg=h("div",{className:"rg"});S.rewards.forEach(rw=>{const ca=lb.filter(m=>m.points>=rw.pointsCost);const card=h("div",{className:"rc"},h("div",{className:"ri"},rw.icon),h("div",{className:"rn"},rw.name),h("div",{className:"rcost"},rw.pointsCost+" pts"));if(ca.length)ca.forEach(m=>card.append(h("button",{className:"clb",onClick:()=>{if(confirm(m.name+' claims "'+rw.name+'" for '+rw.pointsCost+" pts?")){db.collection("households").doc(householdId).collection("tasks").add({title:"🎁 Claimed: "+rw.name,priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Complete",category:"Kids & Family",owner:m.name,dueDate:td(),description:"Reward redeemed",points:-rw.pointsCost,completedBy:"",recurring:"none"})}}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name+" can claim")));else card.append(h("div",{style:{fontSize:"10px",color:"#475569",marginTop:"6px"}},"Not enough points yet"));rg.append(card)});rc.append(rg);w.append(rc);
+// === WALLET SECTION ===
+const rate=getExchangeRate();
+const wc=h("div",{className:"dc",style:{marginTop:"16px"}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},h("h3",{className:"dct",style:{marginBottom:0}},"💵 Wallet"),
+isParent()?h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:()=>{const cur=getExchangeRate();const inp=prompt("Set exchange rate:\nHow many points = $1?\n\nCurrent: "+cur+" pts = $1",cur);if(inp&&parseInt(inp)>0)setExchangeRate(parseInt(inp))}},"⚙️ Set Rate"):null));
+// Rate display
+wc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"10px 14px",background:"#1e293b",borderRadius:"10px",marginBottom:"16px",fontSize:"13px"}},
+h("span",{style:{fontSize:"18px"}},"💱"),
+h("span",{style:{color:"#94a3b8"}},"Exchange Rate:"),
+h("span",{style:{fontWeight:700,color:"#22c55e"}},rate+" pts = $1.00")));
+// Cash claim buttons
+const cashAmounts=[1,5,10,20];
+const cashGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"8px",marginBottom:"16px"}});
+cashAmounts.forEach(amt=>{const ptsCost=amt*rate;
+cashGrid.append(h("div",{style:{background:"#1e293b",borderRadius:"10px",padding:"12px 8px",textAlign:"center",border:"1px solid #334155"}},
+h("div",{style:{fontSize:"20px",marginBottom:"2px"}},"💵"),
+h("div",{style:{fontSize:"16px",fontWeight:700,color:"#22c55e"}},"$"+amt),
+h("div",{style:{fontSize:"10px",color:"#64748b",marginBottom:"8px"}},ptsCost+" pts"),
+...lb.filter(m=>m.points>=ptsCost).map(m=>h("button",{className:"clb",style:{marginTop:"2px"},onClick:()=>{if(confirm(m.name+" claims $"+amt+" for "+ptsCost+" pts?")){
+db.collection("households").doc(householdId).collection("tasks").add({title:"💵 Cash: $"+amt,priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Complete",category:"Kids & Family",owner:m.name,dueDate:td(),description:"Cash reward claimed",points:-ptsCost,completedBy:"",recurring:"none"});
+addWalletTx(m.name,amt,"earn","Claimed $"+amt+" for "+ptsCost+" pts")}}},
+h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name))))});
+wc.append(cashGrid);
+// Wallet balances per member
+const walletMembers=S.members.filter(m=>m.role!=="teacher");
+wc.append(h("div",{style:{fontSize:"12px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"💰 Balances"));
+walletMembers.forEach(m=>{const bal=getWalletBalance(m.name);const mc=gm(m.name);
+wc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 12px",background:"#1e293b44",borderRadius:"10px",marginBottom:"6px",borderLeft:"3px solid "+(mc?.color||"#64748b")}},
+avEl(m,32),
+h("div",{style:{flex:1}},h("div",{style:{fontWeight:600,fontSize:"14px"}},m.name),h("div",{style:{fontSize:"11px",color:"#64748b"}},S.wallet.filter(t=>t.member===m.name).length+" transactions")),
+h("div",{style:{textAlign:"right"}},h("div",{style:{fontSize:"20px",fontWeight:700,color:bal>0?"#22c55e":"#64748b"}},"$"+bal.toFixed(2)),
+isParent()&&bal>0?h("button",{style:{padding:"3px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid #3b82f644",background:"#3b82f618",color:"#3b82f6",marginTop:"4px"},onClick:()=>{const payAmt=prompt("How much are you paying "+m.name+"?\n\nBalance: $"+bal.toFixed(2),""+bal.toFixed(2));if(payAmt&&parseFloat(payAmt)>0){const pa=Math.min(parseFloat(payAmt),bal);addWalletTx(m.name,-pa,"payout","Paid out $"+pa.toFixed(2))}}},"💸 Pay Out"):null)))});
+// Transaction history (last 20)
+const myTxs=S.wallet.sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return bt-at}).slice(0,20);
+if(myTxs.length){wc.append(h("div",{style:{fontSize:"12px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginTop:"16px",marginBottom:"8px"}},"📜 Recent Transactions"));
+myTxs.forEach(tx=>{const isEarn=tx.amount>0;const mc=gm(tx.member);
+wc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"6px 10px",borderBottom:"1px solid #1e293b44",fontSize:"12px"}},
+h("span",{style:{fontSize:"14px"}},isEarn?"💵":"💸"),
+h("span",{style:{width:"18px",height:"18px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"8px",fontWeight:700,color:"#fff",flexShrink:0}},tx.member?.charAt(0)||"?"),
+h("span",{style:{flex:1,color:"#94a3b8"}},tx.note||tx.type),
+h("span",{style:{fontWeight:700,color:isEarn?"#22c55e":"#3b82f6"}},(isEarn?"+":"")+("$"+Math.abs(tx.amount).toFixed(2))),
+h("span",{style:{fontSize:"10px",color:"#475569",marginLeft:"4px"}},tx.timestamp?.toDate?tx.timestamp.toDate().toLocaleDateString("en-US",{month:"short",day:"numeric"}):"")))})}
+w.append(wc);return w}
 function rKids(){const tdy=td();
 // Find current user's member or let them pick
 const me=getMe();
@@ -631,7 +684,9 @@ if(isParent()){const mp=h("div",{style:{display:"flex",gap:"8px",justifyContent:
 // Greeting
 w.append(h("div",{style:{textAlign:"center",marginBottom:"24px"}},avEl(km||{name:kidName,color:"#f59e0b"},80),h("div",{style:{fontSize:"24px",fontWeight:700,marginTop:"12px"}},"Hi "+kidName+"! 👋"),h("div",{style:{fontSize:"16px",color:"var(--mut)",marginTop:"4px"}},myTasks.length>0?myTasks.length+" task"+(myTasks.length!==1?"s":"")+" to do today":"All done for today! 🎉")));
 // Points display
-w.append(h("div",{style:{display:"flex",justifyContent:"center",gap:"16px",marginBottom:"24px"}},h("div",{style:{textAlign:"center",padding:"12px 20px",background:"var(--ibg)",borderRadius:"12px",border:"1px solid var(--ib)"}},h("div",{style:{fontSize:"28px",fontWeight:700,color:"#eab308"}},"⭐ "+pts),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},"My Points")),h("div",{style:{textAlign:"center",padding:"12px 20px",background:"var(--ibg)",borderRadius:"12px",border:"1px solid var(--ib)"}},h("div",{style:{fontSize:"28px",fontWeight:700,color:"#22c55e"}},doneTasks.length+"/"+totalToday),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},"Done Today"))));
+const kidBal=getWalletBalance(kidName);
+w.append(h("div",{style:{display:"flex",justifyContent:"center",gap:"16px",marginBottom:"24px",flexWrap:"wrap"}},h("div",{style:{textAlign:"center",padding:"12px 20px",background:"var(--ibg)",borderRadius:"12px",border:"1px solid var(--ib)"}},h("div",{style:{fontSize:"28px",fontWeight:700,color:"#eab308"}},"⭐ "+pts),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},"My Points")),h("div",{style:{textAlign:"center",padding:"12px 20px",background:"var(--ibg)",borderRadius:"12px",border:"1px solid var(--ib)"}},h("div",{style:{fontSize:"28px",fontWeight:700,color:"#22c55e"}},doneTasks.length+"/"+totalToday),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},"Done Today")),
+h("div",{style:{textAlign:"center",padding:"12px 20px",background:kidBal>0?"#22c55e11":"var(--ibg)",borderRadius:"12px",border:"1px solid "+(kidBal>0?"#22c55e33":"var(--ib)")}},h("div",{style:{fontSize:"28px",fontWeight:700,color:"#22c55e"}},"💵 $"+kidBal.toFixed(2)),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},"My Wallet"))));
 // Progress bar
 if(totalToday>0){const pct=Math.round(doneTasks.length/totalToday*100);w.append(h("div",{style:{marginBottom:"24px"}},h("div",{style:{height:"12px",background:"var(--ibg)",borderRadius:"6px",overflow:"hidden"}},h("div",{style:{width:pct+"%",height:"100%",background:"linear-gradient(90deg,#22c55e,#16a34a)",borderRadius:"6px",transition:"width .5s"}})),h("div",{style:{textAlign:"center",fontSize:"12px",color:"var(--mut)",marginTop:"4px"}},pct+"% done!")))}
 // Pending approval tasks
@@ -989,7 +1044,7 @@ sendNotif(cat.icon+" Event today: "+t.title,t.eventTime?("At "+t.eventTime):"All
 // Debounced render with notification hooks
 let _renderTimer=null;
 function debouncedRender(){if(_renderTimer)clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{_renderTimer=null;render()},50)}
-function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();let firstLoad=true;
+function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();let firstLoad=true;
 householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";
 if(deviceMemberName&&!S.members.find(m=>m.name===deviceMemberName)){clearDeviceMember()}
 const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter=dm.name}
@@ -1015,6 +1070,7 @@ const newMsgs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.
 checkNewMessages(newMsgs);
 _prevMsgIds=new Set(newMsgs.map(m=>m.id));
 S.messages=newMsgs;debouncedRender()})});
+walletUnsub=db.collection("households").doc(householdId).collection("wallet").onSnapshot(snap=>{S.wallet=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
 showScreen("app");updateNotifBtn()}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";
