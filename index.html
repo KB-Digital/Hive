@@ -665,78 +665,93 @@ h("span",{style:{fontSize:"11px",color:isPast?"#64748b":isToday?"#22c55e":isSoon
 evCards.append(card)});w.append(evCards)}
 else{w.append(h("div",{style:{textAlign:"center",padding:"24px",color:"#334155",background:"#0f1729",borderRadius:"10px",border:"1px solid #7c3aed22"}},h("div",{style:{fontSize:"24px",marginBottom:"6px"}},"🗓️"),h("div",{style:{fontSize:"13px",color:"#64748b"}},"No school events yet"),h("div",{style:{fontSize:"12px",color:"#475569",marginTop:"4px"}},"Add field trips, conferences, no-school days, and more")))}
 return w}
-function sendMsg(thread,text,urgent,taggedTaskId){
+function sendMsg(thread,text,urgent,taggedTaskId,mentions){
 if(!householdId||!text.trim())return;
 const me=S.members.find(m=>m.uid===currentUser?.uid);
-const msg={thread,text:text.trim(),sender:me?.name||currentUser?.displayName||"Unknown",senderUid:currentUser?.uid||"",senderColor:me?.color||"#64748b",senderRole:me?.role||"parent",timestamp:firebase.firestore.FieldValue.serverTimestamp(),urgent:!!urgent,taggedTaskId:taggedTaskId||"",readBy:[currentUser?.uid]};
+const msg={thread,text:text.trim(),sender:me?.name||currentUser?.displayName||"Unknown",senderUid:currentUser?.uid||"",senderColor:me?.color||"#64748b",senderRole:me?.role||"parent",timestamp:firebase.firestore.FieldValue.serverTimestamp(),urgent:!!urgent,taggedTaskId:taggedTaskId||"",mentions:mentions||[],readBy:[currentUser?.uid]};
 db.collection("households").doc(householdId).collection("messages").add(msg)}
 function markRead(msgIds){if(!householdId||!currentUser)return;const batch=db.batch();msgIds.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
-function rMessages(){const w=h("div",{style:{display:"flex",gap:"16px",height:"calc(100vh - 140px)",minHeight:"400px"}});
-// Get teachers and build thread list
+function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
+function canSeeThread(tid,myName,myRole){if(tid==="general")return myRole!=="teacher";if(tid.startsWith("teacher_"))return tid==="teacher_"+myName||myRole!=="teacher";if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
+function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
 const teachers=S.members.filter(m=>m.role==="teacher");
-const myRole=getMyRole();const myName=S.members.find(m=>m.uid===currentUser?.uid)?.name||"";
-const allThreads=[{id:"general",label:"📢 Family Chat",sub:"Family members only",familyOnly:true},...teachers.map(t=>({id:"teacher_"+t.name,label:"🍎 "+t.name,sub:"Chat with "+t.name,color:t.color}))];
-// Teachers only see their own thread; family sees general + all teacher threads
-const threads=myRole==="teacher"?allThreads.filter(t=>t.id==="teacher_"+myName):allThreads.filter(t=>!t.familyOnly||myRole!=="teacher");
-const activeThread=(threads.find(t=>t.id===S.msgThread))?S.msgThread:(threads[0]?.id||"general");
+const myRole=getMyRole();const me=S.members.find(m=>m.uid===currentUser?.uid);const myName=me?.name||"";
+// Build all possible threads
+const allThreads=[];
+if(myRole!=="teacher")allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6"});
+teachers.forEach(t=>{allThreads.push({id:"teacher_"+t.name,label:"🍎 "+t.name,sub:"Teacher",icon:"🍎",color:t.color||"#22c55e",avatar:t})});
+if(myRole!=="teacher"){S.members.filter(m=>m.name!==myName&&m.role!=="teacher").forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m})})}
+const threads=allThreads.filter(t=>canSeeThread(t.id,myName,myRole));
+if(myRole==="teacher"&&!threads.length)threads.push({id:"teacher_"+myName,label:"🍎 "+myName,sub:"Your channel",icon:"🍎",color:me?.color||"#22c55e"});
+const activeThread=threads.find(t=>t.id===S.msgThread)?S.msgThread:(threads[0]?.id||"general");
 const threadMsgs=S.messages.filter(m=>m.thread===activeThread);
-// Mark unread messages as read
 const unreadIds=threadMsgs.filter(m=>!m.readBy?.includes(currentUser?.uid)).map(m=>m.id);
 if(unreadIds.length)setTimeout(()=>markRead(unreadIds),500);
-// Thread list sidebar
-const tl=h("div",{style:{width:"200px",flexShrink:0,borderRight:"1px solid var(--bdr)",overflowY:"auto",display:"flex",flexDirection:"column",gap:"2px",paddingRight:"12px"}});
-tl.append(h("div",{style:{fontSize:"12px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"8px 0 8px",marginBottom:"4px"}},"Conversations"));
+// === SIDEBAR ===
+const tl=h("div",{style:{width:"220px",flexShrink:0,borderRight:"1px solid var(--bdr)",overflowY:"auto",display:"flex",flexDirection:"column",gap:"2px",padding:"8px 10px 8px 0"}});
+if(myRole!=="teacher")tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"4px 12px 8px"}},"Conversations"));
 threads.forEach(t=>{const unread=S.messages.filter(m=>m.thread===t.id&&!m.readBy?.includes(currentUser?.uid)).length;
 const lastMsg=S.messages.filter(m=>m.thread===t.id).slice(-1)[0];
 const isActive=activeThread===t.id;
-tl.append(h("button",{style:{width:"100%",textAlign:"left",padding:"10px 12px",borderRadius:"10px",border:"none",background:isActive?"#1e3a5f":"transparent",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",flexDirection:"column",gap:"3px"},onClick:()=>{S.msgThread=t.id;render()}},
+const avDiv=t.avatar?avEl(t.avatar,28):h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center",flexShrink:0}},t.icon);
+tl.append(h("button",{style:{width:"100%",textAlign:"left",padding:"8px 12px",borderRadius:"10px",border:"none",background:isActive?"#1e3a5f":"transparent",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",gap:"10px"},onClick:()=>{S.msgThread=t.id;S._showThreadList=false;render()}},
+avDiv,
+h("div",{style:{flex:1,minWidth:0}},
 h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
-h("span",{style:{fontSize:"13px",fontWeight:isActive?700:500,color:isActive?"#60a5fa":"var(--sub)"}},t.label),
-unread?h("span",{style:{background:"#ef4444",color:"#fff",fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"8px",minWidth:"16px",textAlign:"center"}},String(unread)):null),
-lastMsg?h("div",{style:{fontSize:"10px",color:"var(--mut)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},lastMsg.sender+": "+lastMsg.text):h("div",{style:{fontSize:"10px",color:"#334155"}},"No messages yet")))});
+h("span",{style:{fontSize:"13px",fontWeight:isActive||unread?700:500,color:isActive?"#60a5fa":"var(--txt)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},t.label),
+unread?h("span",{style:{background:"#ef4444",color:"#fff",fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"8px",minWidth:"16px",textAlign:"center",flexShrink:0}},String(unread)):null),
+lastMsg?h("div",{style:{fontSize:"10px",color:"var(--mut)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},lastMsg.sender+": "+lastMsg.text.substring(0,30)):h("div",{style:{fontSize:"10px",color:"#334155"}},"No messages yet"))))});
 w.append(tl);
-// Chat area
+// === CHAT ===
 const chatArea=h("div",{style:{flex:1,display:"flex",flexDirection:"column",minWidth:0}});
-// Chat header
 const activeT=threads.find(t=>t.id===activeThread)||threads[0];
 chatArea.append(h("div",{style:{padding:"10px 16px",borderBottom:"1px solid var(--bdr)",display:"flex",alignItems:"center",justifyContent:"space-between"}},
-h("div",{},h("div",{style:{fontSize:"15px",fontWeight:700}},activeT.label),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},activeThread==="general"?"All family members & teachers":activeT.sub)),
+h("div",{},h("div",{style:{fontSize:"15px",fontWeight:700}},(activeT?.icon||"💬")+" "+(activeT?.label||"Chat")),h("div",{style:{fontSize:"11px",color:"var(--mut)"}},activeThread==="general"?"All family members":activeT?.sub||"")),
 h("div",{style:{fontSize:"11px",color:"var(--mut)"}},threadMsgs.length+" message"+(threadMsgs.length!==1?"s":""))));
-// Messages
 const msgScroll=h("div",{style:{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:"8px"}});
+const renderText=(txt)=>{const parts=[];let last=0;const regex=/@(\w+)/g;let match;while((match=regex.exec(txt))!==null){if(match.index>last)parts.push(document.createTextNode(txt.slice(last,match.index)));const mn=match[1];const mm=S.members.find(x=>x.name.toLowerCase()===mn.toLowerCase());parts.push(h("span",{style:{background:(mm?.color||"#3b82f6")+"33",color:mm?.color||"#60a5fa",fontWeight:600,padding:"0 3px",borderRadius:"3px"}},"@"+mn));last=regex.lastIndex}if(last<txt.length)parts.push(document.createTextNode(txt.slice(last)));const c=h("span",{});parts.forEach(p=>c.append(p));return c};
 if(threadMsgs.length){threadMsgs.forEach(m=>{const isMe=m.senderUid===currentUser?.uid;const taggedTask=m.taggedTaskId?S.tasks.find(t=>t.id===m.taggedTaskId):null;
 const roleBadge=m.senderRole==="teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#22c55e22",color:"#22c55e",border:"1px solid #22c55e44",fontWeight:600,marginLeft:"4px"}},"Teacher"):m.senderRole==="child"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600,marginLeft:"4px"}},"Student"):null;
+const bubble=h("div",{style:{background:isMe?"#1e3a5f":"var(--ibg)",border:"1px solid "+(m.urgent?"#ef444466":isMe?"#3b82f644":"var(--ib)"),borderRadius:isMe?"12px 12px 2px 12px":"12px 12px 12px 2px",padding:"8px 12px",fontSize:"13px",lineHeight:"1.4",color:"var(--txt)",wordBreak:"break-word"}});
+bubble.append(renderText(m.text));
 msgScroll.append(h("div",{style:{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",maxWidth:"80%",alignSelf:isMe?"flex-end":"flex-start"}},
-h("div",{style:{display:"flex",alignItems:"center",gap:"4px",marginBottom:"2px"}},
+h("div",{style:{display:"flex",alignItems:"center",gap:"4px",marginBottom:"2px",flexWrap:"wrap"}},
 h("span",{style:{fontSize:"10px",fontWeight:600,color:m.senderColor||"var(--mut)"}},m.sender),roleBadge,
 m.urgent?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#ef444422",color:"#ef4444",border:"1px solid #ef444444",fontWeight:700}},"🚨 URGENT"):null,
+m.mentions?.length?h("span",{style:{fontSize:"9px",color:"#64748b"}},"→ @"+m.mentions.join(", @")):null,
 h("span",{style:{fontSize:"9px",color:"var(--mut)"}},m.timestamp?.toDate?m.timestamp.toDate().toLocaleString("en-US",{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}):"")),
-h("div",{style:{background:isMe?"#1e3a5f":"var(--ibg)",border:"1px solid "+(m.urgent?"#ef444466":isMe?"#3b82f644":"var(--ib)"),borderRadius:isMe?"12px 12px 2px 12px":"12px 12px 12px 2px",padding:"8px 12px",fontSize:"13px",lineHeight:"1.4",color:"var(--txt)",wordBreak:"break-word"}},m.text),
+bubble,
 taggedTask?h("div",{style:{marginTop:"4px",padding:"4px 8px",background:"#a855f718",border:"1px solid #a855f733",borderRadius:"6px",fontSize:"10px",color:"#c084fc",display:"flex",alignItems:"center",gap:"4px",cursor:"pointer"},onClick:()=>{S.view="school";render()}},"📎 ",h("span",{style:{fontWeight:600}},taggedTask.title),h("span",{style:{color:"#64748b"}}," · Due "+fd(taggedTask.dueDate,{month:"short",day:"numeric"}))):null))})}
 else{msgScroll.append(h("div",{style:{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",color:"#334155"}},h("div",{style:{fontSize:"32px",marginBottom:"8px"}},"💬"),h("div",{style:{fontSize:"14px"}},"No messages yet"),h("div",{style:{fontSize:"12px",color:"#475569",marginTop:"4px"}},"Start the conversation!")))}
 chatArea.append(msgScroll);
-// Auto scroll
 setTimeout(()=>{msgScroll.scrollTop=msgScroll.scrollHeight},50);
-// Compose area
-let urgent=false;let tagId="";
+// === COMPOSE ===
+let urgent=false;let tagId="";let mentions=[];
 const compose=h("div",{style:{padding:"12px 16px",borderTop:"1px solid var(--bdr)",background:"var(--sb)"}});
-const toolRow=h("div",{style:{display:"flex",gap:"6px",marginBottom:"8px",alignItems:"center"}});
-const urgBtn=h("button",{style:{padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(urgent?"#ef4444":"#334155"),background:urgent?"#ef444422":"transparent",color:urgent?"#ef4444":"var(--mut)"},onClick:()=>{urgent=!urgent;urgBtn.style.border="1px solid "+(urgent?"#ef4444":"#334155");urgBtn.style.background=urgent?"#ef444422":"transparent";urgBtn.style.color=urgent?"#ef4444":"var(--mut)";urgBtn.textContent=urgent?"🚨 Urgent — On":"🚨 Urgent"}},"🚨 Urgent");
-const tagSel=h("select",{style:{padding:"4px 8px",borderRadius:"6px",fontSize:"10px",background:"var(--ibg)",border:"1px solid var(--ib)",color:"var(--sub)",fontFamily:"inherit",cursor:"pointer"},onChange:e=>tagId=e.target.value});
-tagSel.append(h("option",{value:""},"📎 Tag assignment/event..."));
+const toolRow=h("div",{style:{display:"flex",gap:"6px",marginBottom:"8px",alignItems:"center",flexWrap:"wrap"}});
+const urgBtn=h("button",{style:{padding:"4px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid #334155",background:"transparent",color:"var(--mut)"},onClick:()=>{urgent=!urgent;urgBtn.style.border="1px solid "+(urgent?"#ef4444":"#334155");urgBtn.style.background=urgent?"#ef444422":"transparent";urgBtn.style.color=urgent?"#ef4444":"var(--mut)";urgBtn.textContent=urgent?"🚨 Urgent — On":"🚨 Urgent"}},"🚨 Urgent");
+const tagSel=h("select",{style:{padding:"4px 8px",borderRadius:"6px",fontSize:"10px",background:"var(--ibg)",border:"1px solid var(--ib)",color:"var(--sub)",fontFamily:"inherit",cursor:"pointer",maxWidth:"180px"},onChange:e=>tagId=e.target.value});
+tagSel.append(h("option",{value:""},"📎 Tag assignment..."));
 S.tasks.filter(t=>t.category==="School & Assignments").forEach(t=>{tagSel.append(h("option",{value:t.id},(t.isEvent?"🗓️ ":"📝 ")+t.title))});
 toolRow.append(urgBtn,tagSel);compose.append(toolRow);
-const inputRow=h("div",{style:{display:"flex",gap:"8px"}});
-const inp=h("input",{type:"text",className:"fi",placeholder:"Type a message...",style:{flex:1,padding:"10px 14px",fontSize:"13px"},onKeydown:e=>{if(e.key==="Enter"&&inp.value.trim()){sendMsg(activeThread,inp.value,urgent,tagId);inp.value="";urgent=false;tagId="";tagSel.value=""}}});
-const sendBtn=h("button",{className:"bp",style:{padding:"10px 20px",whiteSpace:"nowrap"},onClick:()=>{if(inp.value.trim()){sendMsg(activeThread,inp.value,urgent,tagId);inp.value="";urgent=false;tagId="";tagSel.value=""}}},"Send");
-inputRow.append(inp,sendBtn);compose.append(inputRow);
-chatArea.append(compose);
-w.append(chatArea);
-// On mobile, show thread list or chat (not both)
+// Input with @mention popup
+const inputWrap=h("div",{style:{position:"relative",flex:1}});
+const inp=h("input",{type:"text",className:"fi",placeholder:"Type a message... (@ to mention)",style:{width:"100%",padding:"10px 14px",fontSize:"13px"}});
+const mentionDrop=h("div",{style:{display:"none",position:"absolute",bottom:"100%",left:0,right:0,background:"var(--card)",border:"1px solid var(--bdr)",borderRadius:"8px",padding:"4px",marginBottom:"4px",maxHeight:"160px",overflowY:"auto",zIndex:10,boxShadow:"0 -4px 12px rgba(0,0,0,.3)"}});
+inputWrap.append(inp,mentionDrop);
+inp.addEventListener("input",()=>{const val=inp.value;const atIdx=val.lastIndexOf("@");if(atIdx>=0&&(atIdx===0||val[atIdx-1]===" ")){const query=val.slice(atIdx+1).toLowerCase();const matches=S.members.filter(m=>m.name.toLowerCase().startsWith(query)&&m.name!==myName);
+mentionDrop.innerHTML="";if(matches.length){mentionDrop.style.display="block";matches.forEach(m=>{mentionDrop.append(h("button",{style:{width:"100%",display:"flex",alignItems:"center",gap:"8px",padding:"6px 10px",borderRadius:"6px",border:"none",background:"transparent",cursor:"pointer",fontFamily:"inherit",color:"var(--txt)",fontSize:"12px",textAlign:"left"},onClick:()=>{inp.value=val.slice(0,atIdx)+"@"+m.name+" ";if(!mentions.includes(m.name))mentions.push(m.name);mentionDrop.style.display="none";inp.focus()}},h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff",flexShrink:0}},m.name.charAt(0)),h("div",{},h("div",{style:{fontWeight:600}},m.name),h("div",{style:{fontSize:"10px",color:"var(--mut)"}},m.role||"member"))))})}else mentionDrop.style.display="none"}else mentionDrop.style.display="none"});
+function doSend(){const txt=inp.value;if(!txt.trim())return;const found=[...mentions];const reg=/@(\w+)/g;let am;while((am=reg.exec(txt))!==null){if(!found.includes(am[1])&&S.members.find(x=>x.name.toLowerCase()===am[1].toLowerCase()))found.push(am[1])}
+sendMsg(activeThread,txt,urgent,tagId,found);inp.value="";urgent=false;tagId="";mentions=[];tagSel.value="";mentionDrop.style.display="none"}
+inp.addEventListener("keydown",e=>{if(e.key==="Enter")doSend();if(e.key==="Escape")mentionDrop.style.display="none"});
+const sendBtn=h("button",{className:"bp",style:{padding:"10px 20px",whiteSpace:"nowrap",flexShrink:0},onClick:doSend},"Send");
+const inputRow=h("div",{style:{display:"flex",gap:"8px"}});inputRow.append(inputWrap,sendBtn);compose.append(inputRow);
+chatArea.append(compose);w.append(chatArea);
+// Mobile
 const isMobile=window.innerWidth<=768;
-if(isMobile){tl.style.display=S._showThreadList!==false?"flex":"none";tl.style.width="100%";tl.style.paddingRight="0";tl.style.borderRight="none";chatArea.style.display=S._showThreadList!==false?"none":"flex";
+if(isMobile){tl.style.display=S._showThreadList!==false?"flex":"none";tl.style.width="100%";tl.style.padding="8px";tl.style.borderRight="none";chatArea.style.display=S._showThreadList!==false?"none":"flex";
 if(S._showThreadList===false){chatArea.firstChild.prepend(h("button",{style:{background:"none",border:"none",color:"var(--blue)",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",padding:"0",marginRight:"12px"},onClick:()=>{S._showThreadList=true;render()}},"← Back"))}
-threads.forEach((_,i)=>{const btn=tl.children[i+1];if(btn){const origClick=btn.onclick;btn.onclick=()=>{S._showThreadList=false;origClick?.()}}})}
+threads.forEach((_,i)=>{const idx=i+(myRole!=="teacher"?1:0);const btn=tl.children[idx];if(btn){const oc=btn.onclick;btn.onclick=()=>{S._showThreadList=false;oc?.()}}})}
 return w}
 function rEvents(){const tdy=td();const fm=S.evFlt||"all";const fc=S.evCat||"all";
 const allEv=S.tasks.filter(t=>t.isGeneralEvent);
