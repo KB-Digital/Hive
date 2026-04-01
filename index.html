@@ -989,6 +989,33 @@ else{showHouseholdPicker(hIds)}}
 
 function showHouseholdSetup(){showScreen("household");const bar=$("userBar");bar.innerHTML="";if(currentUser.photoURL)bar.append(h("img",{src:currentUser.photoURL,style:{width:"36px",height:"36px",borderRadius:"50%"}}));bar.append(h("div",{},h("div",{style:{fontWeight:600,fontSize:"14px"}},currentUser.displayName||""),h("div",{style:{fontSize:"11px",color:"#64748b"}},currentUser.email||"")));bar.append(h("button",{className:"signout-btn",onClick:()=>auth.signOut()},"Sign Out"));$("householdOptions").style.display="";$("createForm").style.display="none";$("joinForm").style.display="none"}
 
+function joinHouseholdMod(){const bd=h("div",{className:"mbd"});
+bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},
+h("div",{style:{fontSize:"40px",marginBottom:"8px"}},"🔗"),
+h("div",{style:{fontSize:"18px",fontWeight:700,marginBottom:"4px"}},"Join Another Household"),
+h("div",{style:{fontSize:"13px",color:"#64748b"}},"Enter the 6-character invite code from the other household")));
+const inp=h("input",{type:"text",className:"fi",placeholder:"Enter code",maxLength:"6",style:{textTransform:"uppercase",letterSpacing:"4px",textAlign:"center",fontSize:"22px",fontWeight:700,padding:"14px"}});
+const errDiv=h("div",{className:"error-msg",style:{marginTop:"12px"}});
+bd.append(h("div",{className:"fg"},h("label",{},"Invite Code"),inp),errDiv);
+const m=h("div",{className:"modal",style:{maxWidth:"400px"}},
+h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔗 Join Household"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
+h("div",{className:"mft"},h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),h("button",{className:"bp",onClick:async()=>{
+const code=inp.value.trim().toUpperCase();if(code.length!==6){errDiv.textContent="Code must be 6 characters";errDiv.classList.add("show");return}
+try{const cd=await db.collection("inviteCodes").doc(code).get();
+if(!cd.exists){errDiv.textContent="Invalid code. Please check and try again.";errDiv.classList.add("show");return}
+const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";
+const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};
+await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
+await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});
+// Switch to the new household
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
+S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
+householdId=hId;localStorage.setItem("hive_active_household",hId);
+ov_.remove();loadHousehold()
+}catch(e){errDiv.textContent=e.message;errDiv.classList.add("show")}
+}},"Join Household")));
+const ov_=showMod(m);setTimeout(()=>inp.focus(),100)}
+
 async function showHouseholdPicker(hIds){
 showScreen("loading");$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div class="spinner"></div><div style="color:#64748b;font-size:14px;margin-top:12px">Loading households...</div></div>';
 // Fetch household names
@@ -1010,7 +1037,7 @@ h("div",{style:{width:"48px",height:"48px",borderRadius:"14px",background:"linea
 h("div",{style:{flex:1}},h("div",{style:{fontSize:"16px",fontWeight:700,color:"var(--txt)"}},hh.name),h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},memberCount+" member"+(memberCount!==1?"s":"")+" \u2022 "+memberNames))))});
 card.append(grid);
 card.append(h("div",{style:{display:"flex",gap:"8px",justifyContent:"center"}},
-h("button",{className:"bs",onClick:()=>showHouseholdSetup()},"+ Join Another"),
+h("button",{className:"bs",onClick:()=>joinHouseholdMod()},"+ Join Another"),
 h("button",{className:"bs",onClick:()=>auth.signOut()},"Sign Out")));
 wrap.append(card);$("loadingScreen").append(wrap);$("loadingScreen").style.display="flex"}
 
@@ -1060,7 +1087,7 @@ h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",background:isActiv
 h("div",{style:{flex:1,minWidth:0}},h("div",{style:{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},hhData.name||"Unnamed"),h("div",{style:{fontSize:"10px",color:"var(--mut)"}},memCount+" member"+(memCount!==1?"s":""))),
 isActive?h("span",{style:{fontSize:"10px",color:"#f59e0b",fontWeight:700}},"✓ Active"):null))}catch(e){console.error(e)}}
 // Add join option
-drop.append(h("button",{className:"hl-item",style:{borderTop:"1px solid var(--bdr)"},onClick:()=>{drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;showHouseholdSetup()}},h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center"}},"➕"),h("span",{},"Join Another Household")));
+drop.append(h("button",{className:"hl-item",style:{borderTop:"1px solid var(--bdr)"},onClick:()=>{drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;joinHouseholdMod()}},h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center"}},"➕"),h("span",{},"Join Another Household")));
 drop.classList.add("show");arrow.style.transform="rotate(180deg)";_hhDropOpen=true;
 // Close on outside click
 setTimeout(()=>{const closer=e=>{if(!drop.contains(e.target)&&e.target.id!=="householdNameLabel"&&!e.target.closest("#householdNameLabel")){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;document.removeEventListener("click",closer)}};document.addEventListener("click",closer)},10);
