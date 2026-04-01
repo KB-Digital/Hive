@@ -272,6 +272,8 @@ const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",
 let S={tasks:[],members:[],rewards:[],messages:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general"};
 let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
+// Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
+db.enablePersistence({synchronizeTabs:true}).catch(e=>{if(e.code==="failed-precondition")console.log("Persistence failed: multiple tabs open");else if(e.code==="unimplemented")console.log("Persistence not supported in this browser")});
 const genCode=()=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";let r="";for(let i=0;i<6;i++)r+=c[Math.floor(Math.random()*c.length)];return r};
 function save(){
   if(!householdId)return;
@@ -712,7 +714,10 @@ const me=getMe();
 const uid=currentUser?.uid||"";
 const msg={thread,text:text.trim(),sender:me?.name||currentUser?.displayName||"Unknown",senderUid:uid,senderColor:me?.color||"#64748b",senderRole:me?.role||"parent",timestamp:firebase.firestore.FieldValue.serverTimestamp(),urgent:!!urgent,taggedTaskId:taggedTaskId||"",mentions:mentions||[],readBy:uid?[uid]:[]};
 db.collection("households").doc(householdId).collection("messages").add(msg).catch(e=>console.error("Send failed:",e))}
-function markRead(msgIds){if(!householdId||!currentUser)return;const batch=db.batch();msgIds.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
+function markRead(msgIds){if(!householdId||!currentUser||!msgIds.length)return;
+// Deduplicate and limit batch size
+const unique=[...new Set(msgIds)].slice(0,50);
+const batch=db.batch();unique.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
 function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
 function canSeeThread(tid,myName,myRole){if(tid==="general")return myRole!=="teacher";if(tid.startsWith("teacher_"))return tid==="teacher_"+myName||myRole!=="teacher";if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
 function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
@@ -915,15 +920,23 @@ $("createConfirmBtn").addEventListener("click",async()=>{const name=$("household
 
 $("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();let firstLoad=true;householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";
-// Validate stored device member still exists
+// Debounced render to prevent multiple rapid re-renders from concurrent snapshot listeners
+let _renderTimer=null;
+function debouncedRender(){if(_renderTimer)clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{_renderTimer=null;render()},50)}
+function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();let firstLoad=true;
+householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("householdNameLabel").textContent=currentHousehold.name||"";
 if(deviceMemberName&&!S.members.find(m=>m.name===deviceMemberName)){clearDeviceMember()}
-// Set kids view default if device member is a child
 const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter=dm.name}
-render();
-// Show picker on first load if no device member set and user has children
-if(firstLoad&&!deviceMemberName&&S.members.filter(m=>m.role==="child").length>0){setTimeout(()=>deviceMemberPicker(false),300)}
-firstLoad=false});tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));render()});msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});render()});showScreen("app")}
+debouncedRender();
+if(firstLoad&&!deviceMemberName&&S.members.filter(m=>m.role==="child").length>0){setTimeout(()=>deviceMemberPicker(false),400)}
+firstLoad=false});
+tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
+// Limit messages to last 200 to reduce reads — older messages aren't loaded
+msgsUnsub=db.collection("households").doc(householdId).collection("messages").orderBy("timestamp","desc").limit(200).onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).reverse();debouncedRender()},err=>{
+// Fallback if orderBy fails (missing index) — load all without ordering
+console.warn("Messages orderBy failed, using fallback:",err.message);
+msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});debouncedRender()})});
+showScreen("app")}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";
 async function genTeacherCode(){const tc=genCode();await db.collection("households").doc(householdId).update({teacherInviteCode:tc});await db.collection("inviteCodes").doc(tc).set({householdId,role:"teacher"});ov_.remove();settingsMod()}
