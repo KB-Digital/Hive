@@ -294,14 +294,39 @@ let deviceMemberName=localStorage.getItem("hive_device_member")||"";
 function getMe(){if(deviceMemberName){const dm=S.members.find(m=>m.name===deviceMemberName);if(dm)return dm}if(!currentUser)return null;return S.members.find(m=>m.uid===currentUser.uid)||null}
 function setDeviceMember(name){deviceMemberName=name;if(name){localStorage.setItem("hive_device_member",name)}else{localStorage.removeItem("hive_device_member")}const dm=S.members.find(m=>m.name===name);if(dm&&dm.role==="child"){S.view="kids";S.kidsFilter=name}render()}
 function clearDeviceMember(){deviceMemberName="";localStorage.removeItem("hive_device_member");render()}
+function getParentPin(){return localStorage.getItem("hive_parent_pin")||""}
+function setParentPin(pin){localStorage.setItem("hive_parent_pin",pin)}
+function showPinEntry(memberName,onSuccess,overlay){
+const pinBox=h("div",{style:{textAlign:"center",padding:"20px"}});
+const hasPin=!!getParentPin();
+pinBox.append(h("div",{style:{fontSize:"32px",marginBottom:"8px"}},"🔒"),h("div",{style:{fontSize:"16px",fontWeight:700,marginBottom:"4px"}},hasPin?"Enter Parent PIN":"Set a 4-Digit PIN"),h("div",{style:{fontSize:"12px",color:"#64748b",marginBottom:"20px"}},hasPin?"Enter your PIN to switch to "+memberName:"Create a PIN to protect parental access"));
+const dots=h("div",{style:{display:"flex",justifyContent:"center",gap:"12px",marginBottom:"20px"}});
+for(let i=0;i<4;i++)dots.append(h("div",{style:{width:"16px",height:"16px",borderRadius:"50%",border:"2px solid #334155",background:"transparent",transition:"all .2s"},className:"pin-dot"}));
+const errMsg=h("div",{style:{fontSize:"12px",color:"#ef4444",minHeight:"18px",marginBottom:"12px"}});
+pinBox.append(dots,errMsg);
+let entered="";
+function updateDots(){dots.querySelectorAll(".pin-dot").forEach((d,i)=>{d.style.background=i<entered.length?"#3b82f6":"transparent";d.style.borderColor=i<entered.length?"#3b82f6":"#334155"})}
+// Number pad
+const pad=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"8px",maxWidth:"220px",margin:"0 auto"}});
+[1,2,3,4,5,6,7,8,9,null,0,"⌫"].forEach(n=>{if(n===null){pad.append(h("div",{}));return}
+pad.append(h("button",{style:{padding:"14px",borderRadius:"10px",border:"1px solid #334155",background:"#1e293b",color:"#e2e8f0",fontSize:n==="⌫"?"18px":"20px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all .1s"},onClick:()=>{if(n==="⌫"){entered=entered.slice(0,-1);updateDots();errMsg.textContent="";return}
+if(entered.length>=4)return;
+entered+=String(n);updateDots();
+if(entered.length===4){if(!hasPin){setParentPin(entered);onSuccess();if(overlay)overlay.remove()}else if(entered===getParentPin()){onSuccess();if(overlay)overlay.remove()}else{errMsg.textContent="Wrong PIN — try again";entered="";setTimeout(updateDots,100)}}}},String(n)))});
+pinBox.append(pad);
+pinBox.append(h("button",{style:{marginTop:"16px",background:"none",border:"none",color:"#64748b",fontSize:"11px",cursor:"pointer",fontFamily:"inherit"},onClick:()=>{if(overlay)overlay.remove()}},"Cancel"));
+return pinBox}
 function deviceMemberPicker(force){const bd=h("div",{className:"mbd"});
 bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"👋"),h("div",{style:{fontSize:"20px",fontWeight:700,marginBottom:"4px"}},"Who's using this device?"),h("div",{style:{fontSize:"13px",color:"#64748b"}},"Pick your name to see your tasks, points, and messages")));
 const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"10px",marginBottom:"16px"}});
-S.members.filter(m=>m.role!=="teacher").forEach(m=>{grid.append(h("button",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",padding:"16px 8px",borderRadius:"14px",border:"2px solid "+m.color+"44",background:m.color+"11",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"},onClick:()=>{setDeviceMember(m.name);ov_.remove()}},avEl(m,48),h("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--txt)"}},m.name),h("span",{style:{fontSize:"10px",color:"var(--mut)",textTransform:"capitalize"}},m.role||"member")))});
+S.members.filter(m=>m.role!=="teacher").forEach(m=>{grid.append(h("button",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",padding:"16px 8px",borderRadius:"14px",border:"2px solid "+m.color+"44",background:m.color+"11",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"},onClick:()=>{if(m.role==="parent"){// Show PIN screen
+const pinContent=h("div",{className:"modal",style:{maxWidth:"360px"}});
+pinContent.append(h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔒 Parent Access"),h("button",{className:"ib",onClick:()=>pinOv.remove()},"✕")));
+pinContent.append(showPinEntry(m.name,()=>{setDeviceMember(m.name);ov_.remove()},null));
+const pinOv=showMod(pinContent)}else{setDeviceMember(m.name);ov_.remove()}}},avEl(m,48),h("span",{style:{fontSize:"13px",fontWeight:600,color:"var(--txt)"}},m.name),h("div",{style:{display:"flex",alignItems:"center",gap:"4px"}},h("span",{style:{fontSize:"10px",color:"var(--mut)",textTransform:"capitalize"}},m.role||"member"),m.role==="parent"?h("span",{style:{fontSize:"10px"}},"🔒"):null)))});
 bd.append(grid);
 const ft=h("div",{className:"mft"});
 if(!force)ft.append(h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"));
-ft.append(h("button",{className:"bs",style:{color:"#64748b"},onClick:()=>{clearDeviceMember();ov_.remove()}},"Use signed-in account"));
 const m=h("div",{className:"modal",style:{maxWidth:"480px"}},h("div",{className:"mhd"},h("h3",{style:{margin:0}},"👤 Select User"),h("button",{className:"ib",style:{display:force?"none":""},onClick:()=>ov_.remove()},"✕")),bd,ft);
 const ov_=showMod(m)}
 function getMemberRole(name){const m=gm(name);return m?.role||"parent"}
@@ -859,7 +884,7 @@ $("reportBtn").style.display=teacherMode?"none":"";
 $("pdfBtn").style.display=teacherMode?"none":"";
 $("membersBtn").style.display=teacherMode?"none":"";
 // User chip
-const uc=$("userChip");uc.innerHTML="";const chipMe=getMe();if(chipMe){uc.append(avEl(chipMe,22));uc.append(h("span",{},chipMe.name));if(deviceMemberName){uc.append(h("span",{style:{fontSize:"8px",background:"#f59e0b33",color:"#f59e0b",padding:"1px 5px",borderRadius:"6px",fontWeight:700,marginLeft:"2px"}},"👤"))}uc.onclick=()=>{if(deviceMemberName)deviceMemberPicker(false);else settingsMod()}}else if(currentUser){uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"));uc.onclick=()=>settingsMod()}
+const uc=$("userChip");uc.innerHTML="";const chipMe=getMe();if(chipMe){uc.append(avEl(chipMe,22));uc.append(h("span",{},chipMe.name));if(deviceMemberName){uc.append(h("span",{style:{fontSize:"8px",background:"#f59e0b33",color:"#f59e0b",padding:"1px 5px",borderRadius:"6px",fontWeight:700,marginLeft:"2px"}},"👤"))}uc.onclick=()=>deviceMemberPicker(false)}else if(currentUser){uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"));uc.onclick=()=>deviceMemberPicker(false)}
 const c=$("content");c.innerHTML="";
 // Overdue banner
 const overdueTasks=S.tasks.filter(t=>t.status!=="Complete"&&t.dueDate<td()&&!t.isGeneralEvent);
@@ -872,7 +897,7 @@ $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventL
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
 $("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("light");const isLight=document.body.classList.contains("light");$("themeToggle").textContent=isLight?"☀️":"🌙";localStorage.setItem("hive_theme",isLight?"light":"dark")});
-$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();settingsMod()});$("switchUserBtn").addEventListener("click",()=>{closeSB();deviceMemberPicker(false)});// ── Auth Flow ──
+$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();const me=getMe();if(me&&me.role==="child"&&getParentPin()){const pc=h("div",{className:"modal",style:{maxWidth:"360px"}});pc.append(h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔒 Parent Access Required"),h("button",{className:"ib",onClick:()=>po.remove()},"✕")));pc.append(showPinEntry("Settings",()=>{po.remove();settingsMod()},null));const po=showMod(pc)}else{settingsMod()}});$("switchUserBtn").addEventListener("click",()=>{closeSB();deviceMemberPicker(false)});// ── Auth Flow ──
 function showScreen(s){$("loadingScreen").style.display="none";$("authScreen").style.display="none";$("householdScreen").style.display="none";$("app").classList.remove("show");if(s==="loading")$("loadingScreen").style.display="flex";else if(s==="auth")$("authScreen").style.display="flex";else if(s==="household")$("householdScreen").style.display="flex";else if(s==="app")$("app").classList.add("show")}
 
 $("googleSignIn").addEventListener("click",async()=>{try{const provider=new firebase.auth.GoogleAuthProvider();try{await auth.signInWithPopup(provider)}catch(popupErr){if(popupErr.code==="auth/popup-blocked"||popupErr.code==="auth/popup-closed-by-user"){await auth.signInWithRedirect(provider)}else{throw popupErr}}}catch(e){$("authError").textContent=e.message;$("authError").classList.add("show")}});
