@@ -223,6 +223,7 @@ Sign in with Google
 <button class="add-btn" id="addTaskBtn">+ Add New Task</button>
 <button class="report-btn" id="settingsBtn">⚙️ Household Settings</button>
 <button class="report-btn" id="switchUserBtn">👤 Switch User</button>
+<button class="report-btn" id="notifBtn">🔔 Notifications: Off</button>
 </div>
 </aside>
 <main class="main">
@@ -888,6 +889,7 @@ $("addTaskBtn").style.display=teacherMode?"none":"";
 $("reportBtn").style.display=teacherMode?"none":"";
 $("pdfBtn").style.display=teacherMode?"none":"";
 $("membersBtn").style.display=teacherMode?"none":"";
+updateNotifBtn();
 // User chip
 const uc=$("userChip");uc.innerHTML="";const chipMe=getMe();if(chipMe){uc.append(avEl(chipMe,22));uc.append(h("span",{},chipMe.name));if(deviceMemberName){uc.append(h("span",{style:{fontSize:"8px",background:"#f59e0b33",color:"#f59e0b",padding:"1px 5px",borderRadius:"6px",fontWeight:700,marginLeft:"2px"}},"👤"))}uc.onclick=()=>deviceMemberPicker(false)}else if(currentUser){uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"));uc.onclick=()=>deviceMemberPicker(false)}
 const c=$("content");c.innerHTML="";
@@ -902,7 +904,7 @@ $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventL
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
 $("themeToggle").addEventListener("click",()=>{document.body.classList.toggle("light");const isLight=document.body.classList.contains("light");$("themeToggle").textContent=isLight?"☀️":"🌙";localStorage.setItem("hive_theme",isLight?"light":"dark")});
-$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();const me=getMe();if(me&&me.role==="child"&&getParentPin()){const pc=h("div",{className:"modal",style:{maxWidth:"360px"}});pc.append(h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔒 Parent Access Required"),h("button",{className:"ib",onClick:()=>po.remove()},"✕")));pc.append(showPinEntry("Settings",()=>{po.remove();settingsMod()},null));const po=showMod(pc)}else{settingsMod()}});$("switchUserBtn").addEventListener("click",()=>{closeSB();deviceMemberPicker(false)});// ── Auth Flow ──
+$("pdfBtn").addEventListener("click",()=>{closeSB();pdfMod()});$("settingsBtn").addEventListener("click",()=>{closeSB();const me=getMe();if(me&&me.role==="child"&&getParentPin()){const pc=h("div",{className:"modal",style:{maxWidth:"360px"}});pc.append(h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔒 Parent Access Required"),h("button",{className:"ib",onClick:()=>po.remove()},"✕")));pc.append(showPinEntry("Settings",()=>{po.remove();settingsMod()},null));const po=showMod(pc)}else{settingsMod()}});$("switchUserBtn").addEventListener("click",()=>{closeSB();deviceMemberPicker(false)});$("notifBtn").addEventListener("click",()=>{closeSB();toggleNotif()});// ── Auth Flow ──
 function showScreen(s){$("loadingScreen").style.display="none";$("authScreen").style.display="none";$("householdScreen").style.display="none";$("app").classList.remove("show");if(s==="loading")$("loadingScreen").style.display="flex";else if(s==="auth")$("authScreen").style.display="flex";else if(s==="household")$("householdScreen").style.display="flex";else if(s==="app")$("app").classList.add("show")}
 
 $("googleSignIn").addEventListener("click",async()=>{try{const provider=new firebase.auth.GoogleAuthProvider();try{await auth.signInWithPopup(provider)}catch(popupErr){if(popupErr.code==="auth/popup-blocked"||popupErr.code==="auth/popup-closed-by-user"){await auth.signInWithRedirect(provider)}else{throw popupErr}}}catch(e){$("authError").textContent=e.message;$("authError").classList.add("show")}});
@@ -920,7 +922,70 @@ $("createConfirmBtn").addEventListener("click",async()=>{const name=$("household
 
 $("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-// Debounced render to prevent multiple rapid re-renders from concurrent snapshot listeners
+// ── Notifications ──
+let notifEnabled=localStorage.getItem("hive_notif")==="on";
+let _prevTaskIds=new Set();let _prevMsgIds=new Set();let _notifReady=false;
+const HIVE_ICON="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,5 93,27.5 93,72.5 50,95 7,72.5 7,27.5' fill='%23d97706'/%3E%3Ctext x='50' y='68' font-size='48' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EH%3C/text%3E%3C/svg%3E";
+
+function updateNotifBtn(){const btn=$("notifBtn");if(!btn)return;
+if(!("Notification" in window)){btn.textContent="🔔 Not Supported";btn.style.opacity=".5";btn.disabled=true;return}
+if(notifEnabled&&Notification.permission==="granted"){btn.textContent="🔔 Notifications: On";btn.style.borderColor="#22c55e44";btn.style.color="#22c55e"}
+else{btn.textContent="🔔 Notifications: Off";btn.style.borderColor="";btn.style.color=""}}
+
+async function toggleNotif(){
+if(!("Notification" in window)){alert("This browser doesn't support notifications.");return}
+if(Notification.permission==="denied"){alert("Notifications are blocked. Please enable them in your browser settings for this site.");return}
+if(!notifEnabled){
+if(Notification.permission!=="granted"){const perm=await Notification.requestPermission();if(perm!=="granted")return}
+notifEnabled=true;localStorage.setItem("hive_notif","on");
+new Notification("Hive Notifications Enabled 🐝",{body:"You'll get alerts for new messages, tasks, and approvals.",icon:HIVE_ICON})}
+else{notifEnabled=false;localStorage.setItem("hive_notif","off")}
+updateNotifBtn()}
+
+function sendNotif(title,body,tag){
+if(!notifEnabled||Notification.permission!=="granted")return;
+// Only notify when app is in background
+if(!document.hidden)return;
+try{new Notification(title,{body,icon:HIVE_ICON,tag:tag||"hive-"+Date.now(),badge:HIVE_ICON})}catch(e){console.log("Notification error:",e)}}
+
+function checkNewMessages(newMsgs){
+if(!_notifReady||!notifEnabled)return;
+const me=getMe();const myUid=currentUser?.uid;if(!me)return;
+newMsgs.forEach(m=>{
+if(_prevMsgIds.has(m.id))return;
+// Don't notify for own messages
+if(m.senderUid===myUid)return;
+// Don't notify for messages in threads we can't see
+if(!canSeeThread(m.thread,me.name,me.role||"parent"))return;
+// Check if message mentions us
+const mentionsMe=m.mentions?.includes(me.name);
+const isDM=m.thread.startsWith("dm_")&&m.thread.includes(me.name);
+const isUrgent=m.urgent;
+const isTeacherThread=m.thread.startsWith("teacher_");
+// Notify for: urgent messages, @mentions, DMs, or teacher messages
+if(isUrgent||mentionsMe||isDM||isTeacherThread){
+const prefix=isUrgent?"🚨 URGENT: ":mentionsMe?"@"+me.name+": ":"";
+sendNotif(prefix+m.sender+" sent a message",m.text.substring(0,100),"msg-"+m.id)}
+// Also notify for general chat messages (less aggressively)
+else if(m.thread==="general"){sendNotif("💬 "+m.sender+" in Family Chat",m.text.substring(0,80),"msg-"+m.id)}})}
+
+function checkNewTasks(newTasks){
+if(!_notifReady||!notifEnabled)return;
+const me=getMe();if(!me)return;
+newTasks.forEach(t=>{
+if(_prevTaskIds.has(t.id))return;
+// Notify if task is assigned to me
+if(t.owner===me.name&&t.status==="Not Started"){
+sendNotif("📋 New task assigned to you",t.title+(t.dueDate?" · Due "+fd(t.dueDate,{month:"short",day:"numeric"}):""),"task-"+t.id)}
+// Notify parents about pending approvals
+if(t.pendingApproval&&(me.role==="parent")&&t.status==="Complete"){
+sendNotif("✅ Task needs approval",t.title+" — completed by "+t.owner,"approve-"+t.id)}
+// Notify about events today
+if(t.isGeneralEvent&&t.dueDate===td()&&(t.owner===me.name||t.owner==="Everyone")){
+const cat=GEC_MAP[t.eventCategory]||GEC_MAP.other;
+sendNotif(cat.icon+" Event today: "+t.title,t.eventTime?("At "+t.eventTime):"All day","event-"+t.id)}})}
+
+// Debounced render with notification hooks
 let _renderTimer=null;
 function debouncedRender(){if(_renderTimer)clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{_renderTimer=null;render()},50)}
 function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();let firstLoad=true;
@@ -930,13 +995,26 @@ const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter
 debouncedRender();
 if(firstLoad&&!deviceMemberName&&S.members.filter(m=>m.role==="child").length>0){setTimeout(()=>deviceMemberPicker(false),400)}
 firstLoad=false});
-tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{S.tasks=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
+tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSnapshot(snap=>{
+const newTasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+checkNewTasks(newTasks);
+_prevTaskIds=new Set(newTasks.map(t=>t.id));
+S.tasks=newTasks;debouncedRender();
+if(!_notifReady)setTimeout(()=>{_notifReady=true},2000)});
 // Limit messages to last 200 to reduce reads — older messages aren't loaded
-msgsUnsub=db.collection("households").doc(householdId).collection("messages").orderBy("timestamp","desc").limit(200).onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).reverse();debouncedRender()},err=>{
+msgsUnsub=db.collection("households").doc(householdId).collection("messages").orderBy("timestamp","desc").limit(200).onSnapshot(snap=>{
+const newMsgs=snap.docs.map(d=>({id:d.id,...d.data()})).reverse();
+checkNewMessages(newMsgs);
+_prevMsgIds=new Set(newMsgs.map(m=>m.id));
+S.messages=newMsgs;debouncedRender()},err=>{
 // Fallback if orderBy fails (missing index) — load all without ordering
 console.warn("Messages orderBy failed, using fallback:",err.message);
-msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{S.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});debouncedRender()})});
-showScreen("app")}
+msgsUnsub=db.collection("households").doc(householdId).collection("messages").onSnapshot(snap=>{
+const newMsgs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{const at=a.timestamp?.toMillis?a.timestamp.toMillis():0;const bt=b.timestamp?.toMillis?b.timestamp.toMillis():0;return at-bt});
+checkNewMessages(newMsgs);
+_prevMsgIds=new Set(newMsgs.map(m=>m.id));
+S.messages=newMsgs;debouncedRender()})});
+showScreen("app");updateNotifBtn()}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";
 async function genTeacherCode(){const tc=genCode();await db.collection("households").doc(householdId).update({teacherInviteCode:tc});await db.collection("inviteCodes").doc(tc).set({householdId,role:"teacher"});ov_.remove();settingsMod()}
