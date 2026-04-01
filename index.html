@@ -162,14 +162,8 @@ td{padding:10px 12px;border-bottom:1px solid #1e293b08;vertical-align:middle}tr:
 .error-msg{color:var(--red);background:#ef444422;border:1px solid #ef444444;border-radius:8px;padding:12px;margin-top:16px;font-size:13px;display:none}
 .error-msg.show{display:block}
 .app{display:none}.app.show{display:flex}
-.hl{padding:10px 16px;font-size:14px;font-weight:700;color:var(--txt);border-bottom:1px solid var(--bdr);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:background .15s}
-.hl:hover{background:var(--ibg)}
-.hl .hl-arrow{font-size:10px;color:var(--mut);transition:transform .2s}
-.hl-drop{display:none;position:absolute;left:0;right:0;background:var(--card);border:1px solid var(--bdr);border-radius:0 0 10px 10px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:110;overflow:hidden}
-.hl-drop.show{display:block}
-.hl-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;font-weight:500;color:var(--sub);transition:background .15s;border:none;background:none;width:100%;text-align:left;font-family:inherit}
-.hl-item:hover{background:var(--ibg);color:var(--txt)}
-.hl-item.active{background:#1e3a5f;color:#60a5fa;font-weight:700}
+.hl{padding:10px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.hl-select{flex:1;background:linear-gradient(180deg,var(--ibg),#151d2e);border:1px solid var(--ib);border-radius:6px;padding:6px 10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;outline:none;color:var(--txt);box-shadow:0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04);appearance:auto;-webkit-appearance:auto}
 
 </style>
 </head>
@@ -218,9 +212,8 @@ Sign in with Google
 <div class="so" id="sidebarOverlay"></div>
 <aside class="sidebar" id="sidebar">
 <div class="sidebar-brand"><div class="brand-icon" id="brandIcon" style="position:relative;overflow:hidden"><svg viewBox="0 0 32 32" width="32" height="32" style="position:absolute;inset:0"><polygon points="16,2 10,5.5 10,12.5 16,16 22,12.5 22,5.5" fill="#fbbf24" opacity="0.35"/><polygon points="16,16 10,19.5 10,26.5 16,30 22,26.5 22,19.5" fill="#fbbf24" opacity="0.25"/><polygon points="9,9 3,12.5 3,19.5 9,23 15,19.5 15,12.5" fill="#fbbf24" opacity="0.2"/><polygon points="23,9 17,12.5 17,19.5 23,23 29,19.5 29,12.5" fill="#fbbf24" opacity="0.2"/></svg><span style="position:relative;z-index:1;font-size:14px;font-weight:700;color:#fff">H</span></div><span class="brand-text">Hive</span></div>
-<div style="position:relative">
-<div class="hl" id="householdNameLabel" onclick="toggleHouseholdDrop()"><span id="hlText"></span><span class="hl-arrow" id="hlArrow">▾</span></div>
-<div class="hl-drop" id="householdDrop"></div>
+<div class="hl">
+<select class="hl-select" id="householdSelect"></select>
 </div>
 <nav class="sidebar-nav" id="sidebarNav"></nav>
 <div class="sidebar-footer">
@@ -1052,47 +1045,40 @@ if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsU
 S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
 showHouseholdPicker(hIds)}
 
-let _hhDropOpen=false;
-async function toggleHouseholdDrop(){
-const drop=$("householdDrop");const arrow=$("hlArrow");
-if(_hhDropOpen){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;return}
-// Fetch user's households
-drop.innerHTML="";
-if(!currentUser){return}
-try{
-const ud=await db.collection("users").doc(currentUser.uid).get();
+let _hhSelectLoaded=false;
+async function updateHouseholdSelect(){
+const sel=$("householdSelect");if(!sel)return;
+// Always show current household name as first/selected option
+const currentName=currentHousehold?.name||"Household";
+// Only fetch other households once (or when needed)
+if(!_hhSelectLoaded&&currentUser){
+_hhSelectLoaded=true;
+try{const ud=await db.collection("users").doc(currentUser.uid).get();
 const data=ud.data()||{};
 const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.householdId))hIds.push(data.householdId);
-if(hIds.length<=1){
-// Only one household — show message plus join button
-drop.append(h("div",{style:{padding:"10px 16px",fontSize:"12px",color:"var(--mut)"}},"This is your only household."));
-drop.append(h("button",{className:"hl-item",style:{borderTop:"1px solid var(--bdr)"},onClick:()=>{drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;joinHouseholdMod()}},h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center"}},"➕"),h("span",{},"Join Another Household")));
-drop.classList.add("show");arrow.style.transform="rotate(180deg)";_hhDropOpen=true;
-// Close on outside click
-setTimeout(()=>{const closer=e=>{if(!drop.contains(e.target)&&e.target.id!=="householdNameLabel"&&!e.target.closest("#householdNameLabel")){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;document.removeEventListener("click",closer)}};document.addEventListener("click",closer)},10);
-return}
-// Fetch names for all households
+sel.innerHTML="";
 for(const hId of hIds){
 try{const doc=await db.collection("households").doc(hId).get();
 if(!doc.exists)continue;
-const hhData=doc.data();const isActive=hId===householdId;const memCount=(hhData.members||[]).length;
-drop.append(h("button",{className:"hl-item"+(isActive?" active":""),onClick:()=>{
-if(isActive){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;return}
-// Switch to this household
+const o=h("option",{value:hId},doc.data().name||"Unnamed");
+if(hId===householdId)o.selected=true;
+sel.append(o)}catch(e){}}
+// Add "Join Another" option
+sel.append(h("option",{value:"__join__",style:{fontStyle:"italic"}},"➕ Join Another Household..."));
+}catch(e){sel.innerHTML="";sel.append(h("option",{},currentName))}}
+else if(!_hhSelectLoaded){sel.innerHTML="";sel.append(h("option",{},currentName))}
+else{// Just update the selected value
+sel.value=householdId}}
+// Handle household select change
+$("householdSelect").addEventListener("change",async function(){
+const val=this.value;
+if(val==="__join__"){this.value=householdId;joinHouseholdMod();return}
+if(val===householdId)return;
+// Switch household
 if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
-householdId=hId;localStorage.setItem("hive_active_household",hId);
-drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;
-loadHousehold()}},
-h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",background:isActive?"linear-gradient(135deg,#f59e0b,#d97706)":"var(--ibg)",border:"1px solid "+(isActive?"#f59e0b":"var(--ib)"),display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:700,color:isActive?"#fff":"var(--mut)",flexShrink:0}},hhData.name?.charAt(0)||"H"),
-h("div",{style:{flex:1,minWidth:0}},h("div",{style:{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},hhData.name||"Unnamed"),h("div",{style:{fontSize:"10px",color:"var(--mut)"}},memCount+" member"+(memCount!==1?"s":""))),
-isActive?h("span",{style:{fontSize:"10px",color:"#f59e0b",fontWeight:700}},"✓ Active"):null))}catch(e){console.error(e)}}
-// Add join option
-drop.append(h("button",{className:"hl-item",style:{borderTop:"1px solid var(--bdr)"},onClick:()=>{drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;joinHouseholdMod()}},h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center"}},"➕"),h("span",{},"Join Another Household")));
-drop.classList.add("show");arrow.style.transform="rotate(180deg)";_hhDropOpen=true;
-// Close on outside click
-setTimeout(()=>{const closer=e=>{if(!drop.contains(e.target)&&e.target.id!=="householdNameLabel"&&!e.target.closest("#householdNameLabel")){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;document.removeEventListener("click",closer)}};document.addEventListener("click",closer)},10);
-}catch(e){console.error(e)}}
+S.tasks=[];S.messages=[];S.wallet=[];S.members=[];_hhSelectLoaded=false;
+householdId=val;localStorage.setItem("hive_active_household",val);
+loadHousehold()});
 
 $("createHouseholdBtn").addEventListener("click",()=>{$("householdOptions").style.display="none";$("createForm").style.display=""});
 $("createBackBtn").addEventListener("click",()=>{$("householdOptions").style.display="";$("createForm").style.display="none"});
@@ -1170,7 +1156,7 @@ sendNotif(cat.icon+" Event today: "+t.title,t.eventTime?("At "+t.eventTime):"All
 let _renderTimer=null;
 function debouncedRender(){if(_renderTimer)clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{_renderTimer=null;render()},50)}
 function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();let firstLoad=true;
-householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];$("hlText").textContent=currentHousehold.name||"";
+householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];updateHouseholdSelect();
 if(deviceMemberName&&!S.members.find(m=>m.name===deviceMemberName)){clearDeviceMember()}
 const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter=dm.name}
 debouncedRender();
