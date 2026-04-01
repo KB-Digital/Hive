@@ -965,18 +965,64 @@ function showScreen(s){$("loadingScreen").style.display="none";$("authScreen").s
 
 $("googleSignIn").addEventListener("click",async()=>{try{const provider=new firebase.auth.GoogleAuthProvider();try{await auth.signInWithPopup(provider)}catch(popupErr){if(popupErr.code==="auth/popup-blocked"||popupErr.code==="auth/popup-closed-by-user"){await auth.signInWithRedirect(provider)}else{throw popupErr}}}catch(e){$("authError").textContent=e.message;$("authError").classList.add("show")}});
 
-auth.onAuthStateChanged(async(user)=>{if(!user){showScreen("auth");return}currentUser=user;showScreen("loading");try{const ud=await db.collection("users").doc(user.uid).get();if(ud.exists&&ud.data().householdId){householdId=ud.data().householdId;loadHousehold()}else{showHouseholdSetup()}}catch(e){console.error(e);$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#e2e8f0;font-size:16px;margin-bottom:8px">Connection Error</div><div style="color:#64748b;font-size:13px;margin-bottom:16px">'+e.message+'</div><button onclick="location.reload()" style="padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Retry</button></div>'}});
+auth.onAuthStateChanged(async(user)=>{if(!user){showScreen("auth");return}currentUser=user;showScreen("loading");try{const ud=await db.collection("users").doc(user.uid).get();if(!ud.exists){showHouseholdSetup();return}
+const data=ud.data();
+// Support both old single householdId and new householdIds array
+const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.householdId))hIds.push(data.householdId);
+if(hIds.length===0){showHouseholdSetup()}
+else if(hIds.length===1){householdId=hIds[0];loadHousehold()}
+else{// Multiple households — check for saved preference or show picker
+const saved=localStorage.getItem("hive_active_household");
+if(saved&&hIds.includes(saved)){householdId=saved;loadHousehold()}
+else{showHouseholdPicker(hIds)}}
+}catch(e){console.error(e);$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#e2e8f0;font-size:16px;margin-bottom:8px">Connection Error</div><div style="color:#64748b;font-size:13px;margin-bottom:16px">'+e.message+'</div><button onclick="location.reload()" style="padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Retry</button></div>'}});
 
 function showHouseholdSetup(){showScreen("household");const bar=$("userBar");bar.innerHTML="";if(currentUser.photoURL)bar.append(h("img",{src:currentUser.photoURL,style:{width:"36px",height:"36px",borderRadius:"50%"}}));bar.append(h("div",{},h("div",{style:{fontWeight:600,fontSize:"14px"}},currentUser.displayName||""),h("div",{style:{fontSize:"11px",color:"#64748b"}},currentUser.email||"")));bar.append(h("button",{className:"signout-btn",onClick:()=>auth.signOut()},"Sign Out"));$("householdOptions").style.display="";$("createForm").style.display="none";$("joinForm").style.display="none"}
+
+async function showHouseholdPicker(hIds){
+showScreen("loading");$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div class="spinner"></div><div style="color:#64748b;font-size:14px;margin-top:12px">Loading households...</div></div>';
+// Fetch household names
+const households=[];
+for(const hId of hIds){try{const doc=await db.collection("households").doc(hId).get();if(doc.exists)households.push({id:hId,name:doc.data().name||"Unnamed",members:doc.data().members||[]})}catch(e){console.error(e)}}
+if(households.length===0){showHouseholdSetup();return}
+if(households.length===1){householdId=households[0].id;localStorage.setItem("hive_active_household",householdId);loadHousehold();return}
+// Show picker
+$("loadingScreen").innerHTML="";
+const wrap=h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",height:"100%",padding:"20px"}});
+const card=h("div",{style:{background:"var(--card)",border:"1px solid var(--bdr)",borderRadius:"20px",padding:"40px",maxWidth:"480px",width:"100%",textAlign:"center"}});
+card.append(h("div",{style:{fontSize:"48px",marginBottom:"12px"}},"🏠"));
+card.append(h("div",{style:{fontSize:"22px",fontWeight:700,marginBottom:"4px"}},"Choose a Household"));
+card.append(h("div",{style:{fontSize:"13px",color:"#64748b",marginBottom:"24px"}},"You belong to multiple households. Pick one to open."));
+const grid=h("div",{style:{display:"flex",flexDirection:"column",gap:"10px",marginBottom:"20px"}});
+households.forEach(hh=>{const memberCount=hh.members.length;const memberNames=hh.members.slice(0,4).map(m=>m.name).join(", ")+(hh.members.length>4?" +"+String(hh.members.length-4):"");
+grid.append(h("button",{style:{display:"flex",alignItems:"center",gap:"14px",padding:"16px 20px",borderRadius:"14px",border:"2px solid var(--ib)",background:"var(--ibg)",cursor:"pointer",fontFamily:"inherit",textAlign:"left",transition:"all .15s",width:"100%"},onClick:()=>{householdId=hh.id;localStorage.setItem("hive_active_household",householdId);loadHousehold()}},
+h("div",{style:{width:"48px",height:"48px",borderRadius:"14px",background:"linear-gradient(135deg,#f59e0b,#d97706)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"22px",fontWeight:700,color:"#fff",flexShrink:0}},"H"),
+h("div",{style:{flex:1}},h("div",{style:{fontSize:"16px",fontWeight:700,color:"var(--txt)"}},hh.name),h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},memberCount+" member"+(memberCount!==1?"s":"")+" \u2022 "+memberNames))))});
+card.append(grid);
+card.append(h("div",{style:{display:"flex",gap:"8px",justifyContent:"center"}},
+h("button",{className:"bs",onClick:()=>showHouseholdSetup()},"+ Join Another"),
+h("button",{className:"bs",onClick:()=>auth.signOut()},"Sign Out")));
+wrap.append(card);$("loadingScreen").append(wrap);$("loadingScreen").style.display="flex"}
+
+async function switchHousehold(){
+if(!currentUser)return;
+const ud=await db.collection("users").doc(currentUser.uid).get();
+const data=ud.data()||{};
+const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.householdId))hIds.push(data.householdId);
+if(hIds.length<=1){alert("You only belong to one household. Join another household first using an invite code in Household Settings.");return}
+// Teardown current listeners
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
+S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
+showHouseholdPicker(hIds)}
 
 $("createHouseholdBtn").addEventListener("click",()=>{$("householdOptions").style.display="none";$("createForm").style.display=""});
 $("createBackBtn").addEventListener("click",()=>{$("householdOptions").style.display="";$("createForm").style.display="none"});
 $("joinHouseholdBtn").addEventListener("click",()=>{$("householdOptions").style.display="none";$("joinForm").style.display=""});
 $("joinBackBtn").addEventListener("click",()=>{$("householdOptions").style.display="";$("joinForm").style.display="none"});
 
-$("createConfirmBtn").addEventListener("click",async()=>{const name=$("householdNameInput").value.trim();if(!name)return;try{const code=genCode();const tCode=genCode();const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[0],uid:currentUser.uid,role:"parent",avatar:"",photo:""};const ref=await db.collection("households").add({name,members:[mem],memberUids:[currentUser.uid],rewards:[...DR],inviteCode:code,teacherInviteCode:tCode,createdBy:currentUser.uid});await db.collection("inviteCodes").doc(code).set({householdId:ref.id,role:"family"});await db.collection("inviteCodes").doc(tCode).set({householdId:ref.id,role:"teacher"});await db.collection("users").doc(currentUser.uid).set({householdId:ref.id,name:currentUser.displayName,email:currentUser.email});householdId=ref.id;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
+$("createConfirmBtn").addEventListener("click",async()=>{const name=$("householdNameInput").value.trim();if(!name)return;try{const code=genCode();const tCode=genCode();const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[0],uid:currentUser.uid,role:"parent",avatar:"",photo:""};const ref=await db.collection("households").add({name,members:[mem],memberUids:[currentUser.uid],rewards:[...DR],inviteCode:code,teacherInviteCode:tCode,createdBy:currentUser.uid});await db.collection("inviteCodes").doc(code).set({householdId:ref.id,role:"family"});await db.collection("inviteCodes").doc(tCode).set({householdId:ref.id,role:"teacher"});await db.collection("users").doc(currentUser.uid).set({householdId:ref.id,householdIds:firebase.firestore.FieldValue.arrayUnion(ref.id),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=ref.id;localStorage.setItem("hive_active_household",ref.id);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-$("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
+$("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;localStorage.setItem("hive_active_household",hId);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
 // ── Notifications ──
 let notifEnabled=localStorage.getItem("hive_notif")==="on";
@@ -1081,7 +1127,7 @@ h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#22c55e",textTransform:"uppercase",marginBottom:"6px"}},"🍎 Teacher Invite Code"),h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"6px"}},"Share with teachers — they can only see School & Messages"),
 tCode?h("div",{},h("div",{className:"invite-code",style:{color:"#22c55e"}},tCode),h("button",{className:"copy-btn",style:{borderColor:"#22c55e",color:"#22c55e"},onClick:()=>{navigator.clipboard?.writeText(tCode)}},"📋 Copy Teacher Code")):h("button",{className:"bp",style:{background:"linear-gradient(135deg,#22c55e,#16a34a)",width:"100%"},onClick:genTeacherCode},"Generate Teacher Invite Code")),
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Signed in as"),h("div",{style:{fontSize:"14px"}},currentUser?.displayName||""),h("div",{style:{fontSize:"12px",color:"#64748b"}},currentUser?.email||"")),
-h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{if(confirm("Leave this household? You can rejoin with the invite code.")){await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete()});if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();ov_.remove();showHouseholdSetup()}}},"Leave Household")));
+h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{if(confirm("Leave this household? You can rejoin with the invite code.")){await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete(),householdIds:firebase.firestore.FieldValue.arrayRemove(householdId)});if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();localStorage.removeItem("hive_active_household");ov_.remove();showHouseholdSetup()}}},"Leave Household")));
 const m=h("div",{className:"modal",style:{maxWidth:"440px"}},h("div",{className:"mhd"},h("h3",{style:{margin:0}},"⚙️ Household Settings"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd);const ov_=showMod(m)}
 
 
