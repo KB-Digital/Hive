@@ -1064,8 +1064,9 @@ const ud=await db.collection("users").doc(currentUser.uid).get();
 const data=ud.data()||{};
 const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.householdId))hIds.push(data.householdId);
 if(hIds.length<=1){
-// Only one household — just show it with no switching
-drop.append(h("div",{style:{padding:"10px 16px",fontSize:"12px",color:"var(--mut)"}},"This is your only household. Join another with an invite code."));
+// Only one household — show message plus join button
+drop.append(h("div",{style:{padding:"10px 16px",fontSize:"12px",color:"var(--mut)"}},"This is your only household."));
+drop.append(h("button",{className:"hl-item",style:{borderTop:"1px solid var(--bdr)"},onClick:()=>{drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;joinHouseholdMod()}},h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center"}},"➕"),h("span",{},"Join Another Household")));
 drop.classList.add("show");arrow.style.transform="rotate(180deg)";_hhDropOpen=true;
 // Close on outside click
 setTimeout(()=>{const closer=e=>{if(!drop.contains(e.target)&&e.target.id!=="householdNameLabel"&&!e.target.closest("#householdNameLabel")){drop.classList.remove("show");arrow.style.transform="";_hhDropOpen=false;document.removeEventListener("click",closer)}};document.addEventListener("click",closer)},10);
