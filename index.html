@@ -205,6 +205,7 @@ Sign in with Google
 <div style="display:flex;gap:8px;justify-content:flex-end"><button class="bs" id="joinBackBtn">Back</button><button class="bp" id="joinConfirmBtn">Join Household</button></div>
 </div>
 <div class="error-msg" id="householdError"></div>
+<div id="pastHouseholds" style="margin-top:16px"></div>
 </div>
 </div>
 
@@ -1236,7 +1237,31 @@ if(saved&&hIds.includes(saved)){householdId=saved;loadHousehold()}
 else{showHouseholdPicker(hIds)}}
 }catch(e){console.error(e);$("loadingScreen").innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:32px;margin-bottom:12px">⚠️</div><div style="color:#e2e8f0;font-size:16px;margin-bottom:8px">Connection Error</div><div style="color:#64748b;font-size:13px;margin-bottom:16px">'+e.message+'</div><button onclick="location.reload()" style="padding:8px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer">Retry</button></div>'}});
 
-function showHouseholdSetup(){showScreen("household");const bar=$("userBar");bar.innerHTML="";if(currentUser.photoURL)bar.append(h("img",{src:currentUser.photoURL,style:{width:"36px",height:"36px",borderRadius:"50%"}}));bar.append(h("div",{},h("div",{style:{fontWeight:600,fontSize:"14px"}},currentUser.displayName||""),h("div",{style:{fontSize:"11px",color:"#64748b"}},currentUser.email||"")));bar.append(h("button",{className:"signout-btn",onClick:()=>auth.signOut()},"Sign Out"));$("householdOptions").style.display="";$("createForm").style.display="none";$("joinForm").style.display="none"}
+function showHouseholdSetup(){showScreen("household");const bar=$("userBar");bar.innerHTML="";if(currentUser.photoURL)bar.append(h("img",{src:currentUser.photoURL,style:{width:"36px",height:"36px",borderRadius:"50%"}}));bar.append(h("div",{},h("div",{style:{fontWeight:600,fontSize:"14px"}},currentUser.displayName||""),h("div",{style:{fontSize:"11px",color:"#64748b"}},currentUser.email||"")));bar.append(h("button",{className:"signout-btn",onClick:()=>auth.signOut()},"Sign Out"));$("householdOptions").style.display="";$("createForm").style.display="none";$("joinForm").style.display="none";
+// Show past households for easy rejoin
+(async()=>{const pastDiv=$("pastHouseholds");if(!pastDiv)return;pastDiv.innerHTML="";
+try{const ud=await db.collection("users").doc(currentUser.uid).get();
+const past=ud.data()?.pastHouseholds||[];
+if(!past.length)return;
+pastDiv.append(h("div",{style:{fontSize:"13px",fontWeight:700,color:"#94a3b8",marginBottom:"10px",textTransform:"uppercase",letterSpacing:"1px"}},"📋 Rejoin a Household"));
+past.forEach(ph=>{
+pastDiv.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:"#1e293b",borderRadius:"12px",border:"1px solid #334155",marginBottom:"8px"}},
+h("div",{style:{width:"40px",height:"40px",borderRadius:"10px",background:"linear-gradient(135deg,#f59e0b44,#d9770644)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"18px",fontWeight:700,color:"#f59e0b",flexShrink:0}},"H"),
+h("div",{style:{flex:1}},
+h("div",{style:{fontWeight:700,fontSize:"14px"}},ph.name||"Unnamed"),
+h("div",{style:{fontSize:"11px",color:"#64748b"}},"Left "+new Date(ph.leftAt).toLocaleDateString("en-US",{month:"short",day:"numeric"}))),
+h("button",{style:{padding:"8px 16px",borderRadius:"8px",border:"none",background:"linear-gradient(135deg,#22c55e,#16a34a)",color:"#fff",fontSize:"12px",fontWeight:700,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 3px 8px rgba(34,197,94,.3)"},onClick:async()=>{
+try{
+await db.collection("households").doc(ph.id).update({memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
+// Remove from past, add to active
+const updPast=past.filter(p=>p.id!==ph.id);
+await db.collection("users").doc(currentUser.uid).update({
+householdId:ph.id,householdIds:firebase.firestore.FieldValue.arrayUnion(ph.id),
+pastHouseholds:updPast});
+householdId=ph.id;localStorage.setItem("hive_active_household",ph.id);loadHousehold()
+}catch(e){alert("Couldn't rejoin: "+e.message)}
+}},"Rejoin")))});
+}catch(e){console.error(e)}})()}
 
 function joinHouseholdMod(){const bd=h("div",{className:"mbd"});
 bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},
@@ -1756,7 +1781,20 @@ h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight
 tCode?h("div",{},h("div",{className:"invite-code",style:{color:"#22c55e"}},tCode),h("button",{className:"copy-btn",style:{borderColor:"#22c55e",color:"#22c55e"},onClick:()=>{navigator.clipboard?.writeText(tCode)}},"📋 Copy Teacher Code")):h("button",{className:"bp",style:{background:"linear-gradient(135deg,#22c55e,#16a34a)",width:"100%"},onClick:genTeacherCode},"Generate Teacher Invite Code")),
 custodySection,
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Signed in as"),h("div",{style:{fontSize:"14px"}},currentUser?.displayName||""),h("div",{style:{fontSize:"12px",color:"#64748b"}},currentUser?.email||"")),
-h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{if(confirm("Leave this household? You can rejoin with the invite code.")){await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete(),householdIds:firebase.firestore.FieldValue.arrayRemove(householdId)});if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();localStorage.removeItem("hive_active_household");ov_.remove();showHouseholdSetup()}}},"Leave Household")));
+h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{
+// Safety: block last parent from leaving
+const parents=S.members.filter(m=>m.role==="parent");
+const amParent=parents.find(m=>m.uid===currentUser.uid);
+if(amParent&&parents.length<=1){alert("You're the only parent in this household. Add another parent before leaving, or you won't be able to manage it.\n\nYour invite code is: "+(currentHousehold?.inviteCode||"unknown")+"\n\nCopy this code to rejoin if needed.");return}
+// Show invite code in confirmation
+const invCode=currentHousehold?.inviteCode||"unknown";
+if(!confirm("Leave this household?\n\nSave this code to rejoin later:\n"+invCode+"\n\nAre you sure?"))return;
+// Remove from active but save to past for easy rejoin
+const hhName=currentHousehold?.name||"Unnamed";
+await db.collection("households").doc(householdId).update({memberUids:firebase.firestore.FieldValue.arrayRemove(currentUser.uid)});
+await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete(),householdIds:firebase.firestore.FieldValue.arrayRemove(householdId),pastHouseholds:firebase.firestore.FieldValue.arrayUnion({id:householdId,name:hhName,leftAt:new Date().toISOString()})});
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();localStorage.removeItem("hive_active_household");ov_.remove();showHouseholdSetup()
+}},"Leave Household")));
 const m=h("div",{className:"modal",style:{maxWidth:"440px"}},h("div",{className:"mhd"},h("h3",{style:{margin:0}},"⚙️ Household Settings"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd);const ov_=showMod(m)}
 
 
