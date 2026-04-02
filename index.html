@@ -1767,31 +1767,27 @@ roster.append(rg);w.append(roster)}
 if(!isTeacher&&students.length===0){
 w.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"Waiting for teacher to set up assignments..."))}
 // Assignments with student status
-const assignments=S.classroomTasks.sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+const allItems=S.classroomTasks.sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+const assignments=allItems.filter(a=>!a.isEvent);
+const classEvents=allItems.filter(a=>a.isEvent);
 if(isTeacher){
-// Teacher sees gradebook-style view
-const ac=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
-h("h3",{className:"dct",style:{marginBottom:0}},"📋 Assignments ("+assignments.length+")"),
+// === TEACHER: ASSIGNMENTS SECTION ===
+const ac=h("div",{className:"dc",style:{marginBottom:"16px"}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
+h("h3",{className:"dct",style:{marginBottom:0}},"📝 Assignments ("+assignments.length+")"),
 h("button",{className:"bp",style:{fontSize:"11px",padding:"4px 12px"},onClick:()=>classroomAssignMod(null,cr.id)},"+ Add")));
 if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments yet. Click '+ Add' to create one."))}
 assignments.forEach(a=>{
-const isEvt=a.isEvent;
-const card=h("div",{style:{background:isEvt?"#a855f711":"var(--ibg)",border:"1px solid "+(isEvt?"#a855f733":"var(--ib)"),borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
-const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>{isEvt?classroomEventMod(a,cr.id):classroomAssignMod(a,cr.id)}});
+const card=h("div",{style:{background:"var(--ibg)",border:"1px solid var(--ib)",borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
+const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>classroomAssignMod(a,cr.id)});
 hdr.append(h("div",{},
-h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
-isEvt?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🗓️ Event"):null,
-h("span",{style:{fontWeight:700,fontSize:"15px"}},a.title)),
+h("div",{style:{fontWeight:700,fontSize:"15px"}},a.title),
 h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",alignItems:"center",gap:"8px"}},
 a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
-a.eventTime?h("span",{},"🕐 "+a.eventTime):null,
-!isEvt&&a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
-!isEvt?h("span",{style:{color:PC[a.priority]||"#64748b"}},a.priority):null)));
-hdr.append(h("button",{className:"ib",onClick:e=>{e.stopPropagation();isEvt?classroomEventMod(a,cr.id):classroomAssignMod(a,cr.id)}},"✏️"));
+a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
+h("span",{style:{color:PC[a.priority]||"#64748b"}},a.priority))));
+hdr.append(h("button",{className:"ib",onClick:e=>{e.stopPropagation();classroomAssignMod(a,cr.id)}},"✏️"));
 card.append(hdr);
 if(a.description){card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},a.description))}
-// Student completion grid (only for assignments, not events)
-if(!isEvt){
 const statuses=a.studentStatus||{};
 const completed=Object.values(statuses).filter(s=>s.status==="Complete").length;
 card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},"Completed: "+completed+"/"+students.length));
@@ -1800,30 +1796,31 @@ students.forEach(st=>{const stStat=statuses[st.uid];const isDone=stStat?.status=
 sGrid.append(h("div",{style:{display:"flex",alignItems:"center",gap:"4px",padding:"3px 8px",borderRadius:"8px",fontSize:"11px",fontWeight:500,background:isDone?"#22c55e18":isIP?"#f59e0b18":"var(--card)",border:"1px solid "+(isDone?"#22c55e44":isIP?"#f59e0b44":"var(--ib)"),color:isDone?"#22c55e":isIP?"#f59e0b":"var(--mut)"}},
 h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:st.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},st.name?.charAt(0)),
 st.name?.split(" ")[0],isDone?" ✓":isIP?" ⏳":""))});
-card.append(sGrid)}
-ac.append(card)});
-w.append(ac)
-}else{
-// Student sees their assignments
-const ac=h("div",{className:"dc"},h("h3",{className:"dct"},"📋 My Assignments in "+cr.name));
-if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments from this class yet."))}
-assignments.forEach(a=>{
-const isEvt=a.isEvent;
-const myStatus=a.studentStatus?.[currentUser?.uid];
-const isDone=myStatus?.status==="Complete";
-if(isEvt){
-// Event display - no checkbox, purple styling
-ac.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px"}},
+card.append(sGrid);ac.append(card)});
+w.append(ac);
+// === TEACHER: EVENTS SECTION ===
+const ec=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
+h("h3",{className:"dct",style:{marginBottom:0,color:"#a855f7"}},"🗓️ School Events ("+classEvents.length+")"),
+h("button",{className:"bp",style:{fontSize:"11px",padding:"4px 12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>classroomEventMod(null,cr.id)},"+ Add")));
+if(!classEvents.length){ec.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No events yet. Click '+ Add' to create one."))}
+classEvents.forEach(ev=>{
+ec.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px",cursor:"pointer"},onClick:()=>classroomEventMod(ev,cr.id)},
 h("div",{style:{fontSize:"20px",flexShrink:0}},"🗓️"),
 h("div",{style:{flex:1}},
-h("div",{style:{fontWeight:600,fontSize:"14px",color:"var(--txt)"}},a.title),
+h("div",{style:{fontWeight:700,fontSize:"14px"}},ev.title),
 h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
-a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
-a.eventTime?h("span",{},"🕐 "+a.eventTime):null,
-a.description?h("span",{},a.description.substring(0,50)+(a.description.length>50?"...":"")):null)),
-h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",fontWeight:600}},"Event")))}
-else{
-// Assignment display - with checkbox
+ev.dueDate?h("span",{},fd(ev.dueDate,{month:"short",day:"numeric"})):null,
+ev.eventTime?h("span",{},"🕐 "+ev.eventTime):null,
+ev.description?h("span",{},ev.description.substring(0,60)+(ev.description.length>60?"...":"")):null)),
+h("button",{className:"ib",onClick:e=>{e.stopPropagation();classroomEventMod(ev,cr.id)}},"✏️")))});
+w.append(ec)
+}else{
+// === STUDENT: ASSIGNMENTS SECTION ===
+const ac=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"📝 My Assignments in "+cr.name));
+if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments from this class yet."))}
+assignments.forEach(a=>{
+const myStatus=a.studentStatus?.[currentUser?.uid];
+const isDone=myStatus?.status==="Complete";
 ac.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:isDone?"#22c55e08":"var(--ibg)",border:"1px solid "+(isDone?"#22c55e33":"var(--ib)"),borderLeft:"4px solid "+(PC[a.priority]||"#64748b"),borderRadius:"10px",marginBottom:"6px"}},
 h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",border:"2px solid "+(isDone?"#22c55e":"var(--ib)"),background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",color:"#fff",cursor:"pointer",flexShrink:0},onClick:()=>{
 const newStatus=isDone?"Not Started":"Complete";
@@ -1835,8 +1832,23 @@ h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex
 a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
 a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points):null,
 a.description?h("span",{},a.description.substring(0,50)+(a.description.length>50?"...":"")):null)),
-h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:(PC[a.priority]||"#64748b")+"22",color:PC[a.priority]||"#64748b",fontWeight:600}},a.priority)))}});
-w.append(ac)}
+h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:(PC[a.priority]||"#64748b")+"22",color:PC[a.priority]||"#64748b",fontWeight:600}},a.priority)))});
+w.append(ac);
+// === STUDENT: EVENTS SECTION ===
+if(classEvents.length){
+const evc=h("div",{className:"dc"},h("h3",{className:"dct",style:{color:"#a855f7"}},"🗓️ School Events in "+cr.name));
+classEvents.forEach(ev=>{
+evc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px"}},
+h("div",{style:{fontSize:"20px",flexShrink:0}},"🗓️"),
+h("div",{style:{flex:1}},
+h("div",{style:{fontWeight:600,fontSize:"14px",color:"var(--txt)"}},ev.title),
+h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
+ev.dueDate?h("span",{},fd(ev.dueDate,{month:"short",day:"numeric"})):null,
+ev.eventTime?h("span",{},"🕐 "+ev.eventTime):null,
+ev.description?h("span",{},ev.description.substring(0,60)+(ev.description.length>60?"...":"")):null)),
+h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",fontWeight:600}},"Event")))});
+w.append(evc)}
+}
 return w}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";let statusEl;
