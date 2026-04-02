@@ -1219,7 +1219,8 @@ ov_.remove()}},(isE?"Save":"Add")+" Meal")));
 const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
 
 function render(){const myRole=getMyRole();
-let visibleViews=[...VIEWS];
+const enabledViews=currentHousehold?.enabledViews||VIEWS.map(v=>v.id);
+let visibleViews=VIEWS.filter(v=>enabledViews.includes(v.id));
 const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
 visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;nav.append(h("button",{className:"nav-item"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},h("span",{style:{fontSize:"16px",width:"20px",textAlign:"center"}},v.icon),v.label,unread?h("span",{style:{marginLeft:"auto",background:"#ef4444",color:"#fff",fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"10px",minWidth:"18px",textAlign:"center"}},String(unread)):null))});const tabs=$("mobileTabs");tabs.innerHTML="";visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;tabs.append(h("button",{className:"mobile-tab"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},v.icon+" "+v.label+(unread?" ("+unread+")":"")))});$("memberCount").textContent=S.members.length;const av=$("memberAvatars");av.innerHTML="";S.members.slice(0,5).forEach(m=>av.append(avEl(m,24)));const v=visibleViews.find(x=>x.id===S.view)||visibleViews[0];$("viewTitle").textContent=v.icon+" "+v.label+" View";$("topDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
 $("addTaskBtn").style.display="";
@@ -1501,6 +1502,23 @@ const bd=h("div",{className:"mbd"},
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Household Name"),h("div",{style:{fontSize:"18px",fontWeight:700}},currentHousehold?.name||"")),
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"👨‍👩‍👧‍👦 Family Invite Code"),h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"6px"}},"Share with family members — they join as a child/parent"),h("div",{className:"invite-code"},code),h("button",{className:"copy-btn",onClick:()=>{navigator.clipboard?.writeText(code)}},"📋 Copy Family Code")),
 custodySection,
+// View toggles section
+(()=>{const enabledViews=currentHousehold?.enabledViews||VIEWS.map(v=>v.id);
+const alwaysOn=["dashboard","kids","school"];
+const vSection=h("div",{style:{marginBottom:"20px",padding:"16px",background:"#1e293b",borderRadius:"12px",border:"1px solid #334155"}});
+vSection.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}},h("span",{style:{fontSize:"16px"}},"👁️"),h("div",{style:{fontSize:"11px",fontWeight:600,color:"#3b82f6",textTransform:"uppercase"}},"Visible Views")));
+vSection.append(h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"10px"}},"Choose which views appear in the sidebar. Dashboard, Kids, and School are always shown."));
+const vGrid=h("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6px"}});
+VIEWS.forEach(v=>{const isOn=enabledViews.includes(v.id);const locked=alwaysOn.includes(v.id);
+vGrid.append(h("button",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"8px 10px",borderRadius:"8px",border:"1px solid "+(isOn?"#3b82f644":"var(--ib)"),background:isOn?"#1e3a5f22":"var(--ibg)",cursor:locked?"default":"pointer",fontFamily:"inherit",opacity:locked?.7:1,textAlign:"left"},onClick:()=>{
+if(locked)return;
+const cur=currentHousehold?.enabledViews||VIEWS.map(x=>x.id);
+const updated=isOn?cur.filter(x=>x!==v.id):[...cur,v.id];
+db.collection("households").doc(householdId).update({enabledViews:updated}).then(()=>{ov_.remove();settingsMod()})}},
+h("div",{style:{width:"20px",height:"20px",borderRadius:"4px",border:"2px solid "+(isOn?"#3b82f6":"var(--ib)"),background:isOn?"#3b82f6":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",color:"#fff",flexShrink:0}},isOn?"✓":""),
+h("span",{style:{fontSize:"12px",fontWeight:500,color:isOn?"var(--txt)":"var(--mut)"}},v.icon+" "+v.label),
+locked?h("span",{style:{fontSize:"8px",color:"var(--mut)",marginLeft:"auto"}},"required"):null))});
+vSection.append(vGrid);return vSection})(),
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Signed in as"),h("div",{style:{fontSize:"14px"}},currentUser?.displayName||""),h("div",{style:{fontSize:"12px",color:"#64748b"}},currentUser?.email||"")),
 h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{
 // Safety: block last parent from leaving
