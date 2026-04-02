@@ -1456,14 +1456,17 @@ S.classrooms=allCr;
 if(!S.activeClassroom&&allCr.length)S.activeClassroom=allCr[0].id;
 // Listen to active classroom tasks
 if(S.activeClassroom)loadClassroomTasks(S.activeClassroom);
-// Sync classroom assignments to family School view
-syncClassroomToFamily();
+// Sync after a short delay to ensure family tasks have loaded from snapshot
+setTimeout(()=>syncClassroomToFamily(),2000);
 debouncedRender()}
 
 function loadClassroomTasks(crId){
 classroomUnsubs.forEach(u=>u());classroomUnsubs=[];
 const unsub=db.collection("classrooms").doc(crId).collection("assignments").onSnapshot(snap=>{
-S.classroomTasks=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
+S.classroomTasks=snap.docs.map(d=>({id:d.id,...d.data()}));
+// Re-sync to family whenever classroom assignments change
+syncClassroomToFamily();
+debouncedRender()});
 classroomUnsubs.push(unsub);
 const unsub2=db.collection("classrooms").doc(crId).onSnapshot(doc=>{
 if(!doc.exists)return;
@@ -1471,32 +1474,38 @@ const idx=S.classrooms.findIndex(c=>c.id===crId);
 if(idx>=0)S.classrooms[idx]={id:crId,...doc.data()};
 else S.classrooms.push({id:crId,...doc.data()});
 debouncedRender()});
-classroomUnsubs.push(unsub2)}
+classroomUnsubs.push(unsub2);
+// Also listen to ALL classrooms this student is in (not just the active one) for sync
+S.classrooms.forEach(cr=>{
+if(cr.teacherUid===currentUser?.uid)return;
+if(cr.id===crId)return;
+const u=db.collection("classrooms").doc(cr.id).collection("assignments").onSnapshot(()=>{syncClassroomToFamily()});
+classroomUnsubs.push(u)})}
 
+let _syncing=false;
 async function syncClassroomToFamily(){
-if(!householdId||!currentUser)return;
+if(!householdId||!currentUser||_syncing)return;
 const me=getMe();if(!me)return;
-// For each classroom this user is a student in
+_syncing=true;
+try{
 for(const cr of S.classrooms){
 if(cr.teacherUid===currentUser.uid)continue;
-// Fetch assignments from classroom
 const snap=await db.collection("classrooms").doc(cr.id).collection("assignments").get();
 for(const doc of snap.docs){
 const a=doc.data();
-// Check if already synced to family
+// Re-read current tasks to avoid stale state
 const existing=S.tasks.find(t=>t.classroomTaskId===doc.id&&t.classroomId===cr.id);
 if(!existing){
-// Create in family household
 await db.collection("households").doc(householdId).collection("tasks").add({
 title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:"Urgent",importance:"Important",
 status:"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
 points:a.points||20,completedBy:"",recurring:"none",
-classroomTaskId:doc.id,classroomId:cr.id,classroomName:cr.name,teacherName:cr.teacherName
+classroomTaskId:doc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||""
 })}else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
-// Update if teacher changed the assignment
 await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
-title:a.title,description:a.description||"",dueDate:a.dueDate||""})}}}}
-
+title:a.title,description:a.description||"",dueDate:a.dueDate||""})}}}
+}catch(e){console.error("Classroom sync error:",e)}
+_syncing=false}
 async function syncStatusToClassroom(task){
 if(!task.classroomTaskId||!task.classroomId||!currentUser)return;
 const me=getMe();if(!me)return;
