@@ -269,11 +269,11 @@ const ROOMS=["Any Room","Kitchen","Bathroom","Bedroom","Living Room","Dining Roo
 const PC={Critical:"#ef4444",High:"#f97316",Medium:"#3b82f6",Low:"#22c55e"};
 const SC={"Not Started":"#64748b","In Progress":"#3b82f6",Complete:"#22c55e",Blocked:"#ef4444"};
 const MC=["#3b82f6","#f97316","#22c55e","#a855f7","#ef4444","#eab308","#06b6d4","#ec4899","#14b8a6","#f43f5e"];
-const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
+const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"filter",label:"Filter",icon:"🔍"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null};
+let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc"};
 let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
@@ -944,6 +944,119 @@ const w=h("div",{},nav,memberFilter(S.wFlt,v=>{S.wFlt=v;render()}));
 const g=h("div",{className:"wg"});wd.forEach(day=>{const ds=day.toISOString().split("T")[0];const dt=filt.filter(t=>t.dueDate===ds).sort((a,b)=>PRIORITIES.indexOf(a.priority)-PRIORITIES.indexOf(b.priority));const it=ds===tdy;const col=h("div",{className:"wd"+(it?" today":"")},h("div",{className:"wdh"},h("span",{style:{fontWeight:600}},day.toLocaleDateString("en-US",{weekday:"short"})),h("span",{style:{fontSize:"18px",fontWeight:700,color:it?"#3b82f6":"#e2e8f0"}},String(day.getDate()))));const tasks=h("div",{className:"wt"});
 dt.forEach(t=>{const mc=gm(t.owner)?.color||"#64748b";tasks.append(h("div",{className:"wcard",style:{borderLeftColor:PC[t.priority]}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},h("div",{style:{cursor:"pointer",flex:1},onClick:()=>cycleStat(t.id)},h("div",{style:{fontSize:"11px",fontWeight:600,lineHeight:"1.3"}},t.title),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",marginTop:"2px"}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:mc,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff",flexShrink:0}},t.owner.charAt(0).toUpperCase()),h("span",{style:{fontSize:"10px",color:SC[t.status]}},t.status))),h("button",{className:"dx",style:{marginTop:"-2px"},onClick:()=>delTask(t.id)},"✕"))))});
 if(!dt.length)tasks.append(h("div",{style:{fontSize:"11px",color:"#334155",textAlign:"center",padding:"8px"}},"—"));col.append(tasks);g.append(col)});w.append(g);return w}
+// ── Filter View ──
+function rFilter(){const w=h("div");const tdy=td();
+const wkStart=(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})();
+const wkEnd=(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay()+6);return d.toISOString().split("T")[0]})();
+// Filter controls
+const controls=h("div",{className:"dc",style:{marginBottom:"16px"}});
+controls.append(h("h3",{className:"dct"},"🔍 Filter Tasks"));
+// Row 1: Status + Date Range
+const row1=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginBottom:"12px"}});
+// Status filter
+const statusWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+statusWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Status"));
+const statusBar=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
+["all","Not Started","In Progress","Complete","Blocked"].forEach(st=>{const isActive=S.fvStatus===st;
+statusBar.append(h("button",{style:{padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(isActive?(st==="all"?"#3b82f6":(SC[st]||"#3b82f6")):"var(--ib)"),background:isActive?(st==="all"?"#1e3a5f":(SC[st]||"#3b82f6")+"22"):"var(--ibg)",color:isActive?(st==="all"?"#60a5fa":(SC[st]||"#60a5fa")):"var(--sub)",boxShadow:"0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"},onClick:()=>{S.fvStatus=st;render()}},st==="all"?"All":st))});
+statusWrap.append(statusBar);row1.append(statusWrap);
+// Date range filter
+const dateWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+dateWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Date Range"));
+const dateBar=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
+[{v:"all",l:"All"},{v:"today",l:"Today"},{v:"week",l:"This Week"},{v:"overdue",l:"Overdue"},{v:"upcoming",l:"Next 7 Days"},{v:"nodate",l:"No Date"}].forEach(dt=>{const isActive=S.fvDate===dt.v;
+dateBar.append(h("button",{style:{padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(isActive?"#3b82f6":"var(--ib)"),background:isActive?"#1e3a5f":"var(--ibg)",color:isActive?"#60a5fa":"var(--sub)",boxShadow:"0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"},onClick:()=>{S.fvDate=dt.v;render()}},dt.l))});
+dateWrap.append(dateBar);row1.append(dateWrap);
+controls.append(row1);
+// Row 2: Owner + Priority
+const row2=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginBottom:"12px"}});
+// Owner filter
+const ownerWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+ownerWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Assigned To"));
+const ownerBar=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
+ownerBar.append(h("button",{style:{padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(S.fvOwner==="all"?"#3b82f6":"var(--ib)"),background:S.fvOwner==="all"?"#1e3a5f":"var(--ibg)",color:S.fvOwner==="all"?"#60a5fa":"var(--sub)",boxShadow:"0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"},onClick:()=>{S.fvOwner="all";render()}},"All"));
+S.members.forEach(m=>{const isActive=S.fvOwner===m.name;
+ownerBar.append(h("button",{style:{display:"flex",alignItems:"center",gap:"4px",padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(isActive?m.color+"66":"var(--ib)"),background:isActive?m.color+"18":"var(--ibg)",color:isActive?"var(--txt)":"var(--sub)",boxShadow:"0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"},onClick:()=>{S.fvOwner=m.name;render()}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name))});
+ownerWrap.append(ownerBar);row2.append(ownerWrap);
+// Priority filter
+const prioWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+prioWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Priority"));
+const prioBar=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
+["all","Critical","High","Medium","Low"].forEach(p=>{const isActive=S.fvPriority===p;const pc2=PC[p]||"#3b82f6";
+prioBar.append(h("button",{style:{padding:"5px 10px",borderRadius:"8px",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(isActive?(p==="all"?"#3b82f6":pc2+"66"):"var(--ib)"),background:isActive?(p==="all"?"#1e3a5f":pc2+"22"):"var(--ibg)",color:isActive?(p==="all"?"#60a5fa":pc2):"var(--sub)",boxShadow:"0 2px 3px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.04)"},onClick:()=>{S.fvPriority=p;render()}},p==="all"?"All":p))});
+prioWrap.append(prioBar);row2.append(prioWrap);
+controls.append(row2);
+// Row 3: Category + Sort
+const row3=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginBottom:"8px"}});
+const catWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+catWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Category"));
+const catSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{S.fvCategory=e.target.value;render()}});
+catSel.append(h("option",{value:"all"},"All Categories"));
+[...new Set(S.tasks.filter(t=>!t.isGeneralEvent).map(t=>t.category).filter(Boolean))].sort().forEach(c=>{const o=h("option",{value:c},c);if(c===S.fvCategory)o.selected=true;catSel.append(o)});
+catWrap.append(catSel);row3.append(catWrap);
+// Sort
+const sortWrap=h("div",{style:{flex:1,minWidth:"140px"}});
+sortWrap.append(h("div",{style:{fontSize:"10px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"4px"}},"Sort By"));
+const sortRow=h("div",{style:{display:"flex",gap:"4px"}});
+const sortSel=h("select",{className:"ss",style:{flex:1},onChange:e=>{S.fvSort=e.target.value;render()}});
+[{v:"dueDate",l:"Due Date"},{v:"priority",l:"Priority"},{v:"title",l:"Name"},{v:"status",l:"Status"},{v:"owner",l:"Owner"},{v:"points",l:"Points"}].forEach(s=>{const o=h("option",{value:s.v},s.l);if(s.v===S.fvSort)o.selected=true;sortSel.append(o)});
+sortRow.append(sortSel);
+sortRow.append(h("button",{className:"bs",style:{padding:"4px 10px",fontSize:"12px"},onClick:()=>{S.fvDir=S.fvDir==="asc"?"desc":"asc";render()}},S.fvDir==="asc"?"▲ Asc":"▼ Desc"));
+sortWrap.append(sortRow);row3.append(sortWrap);
+// Reset button
+const resetWrap=h("div",{style:{display:"flex",alignItems:"flex-end",minWidth:"80px"}});
+resetWrap.append(h("button",{className:"bs",style:{padding:"6px 14px",fontSize:"11px",borderColor:"#f59e0b44",color:"#f59e0b"},onClick:()=>{S.fvStatus="all";S.fvOwner="all";S.fvDate="all";S.fvPriority="all";S.fvCategory="all";S.fvSort="dueDate";S.fvDir="asc";render()}},"↺ Reset"));
+row3.append(resetWrap);
+controls.append(row3);
+w.append(controls);
+// Apply filters
+let filtered=S.tasks.filter(t=>!t.isGeneralEvent);
+if(S.fvStatus!=="all")filtered=filtered.filter(t=>t.status===S.fvStatus);
+if(S.fvOwner!=="all")filtered=filtered.filter(t=>t.owner===S.fvOwner);
+if(S.fvPriority!=="all")filtered=filtered.filter(t=>t.priority===S.fvPriority);
+if(S.fvCategory!=="all")filtered=filtered.filter(t=>t.category===S.fvCategory);
+if(S.fvDate==="today")filtered=filtered.filter(t=>t.dueDate===tdy);
+else if(S.fvDate==="week")filtered=filtered.filter(t=>t.dueDate>=wkStart&&t.dueDate<=wkEnd);
+else if(S.fvDate==="overdue")filtered=filtered.filter(t=>t.dueDate<tdy&&t.status!=="Complete");
+else if(S.fvDate==="upcoming"){const d7=new Date();d7.setDate(d7.getDate()+7);filtered=filtered.filter(t=>t.dueDate>=tdy&&t.dueDate<=d7.toISOString().split("T")[0])}
+else if(S.fvDate==="nodate")filtered=filtered.filter(t=>!t.dueDate);
+// Sort
+filtered.sort((a,b)=>{let av=a[S.fvSort],bv=b[S.fvSort];if(S.fvSort==="priority"){av=PRIORITIES.indexOf(av);bv=PRIORITIES.indexOf(bv)}if(S.fvSort==="points"){av=av||0;bv=bv||0}if(av<bv)return S.fvDir==="asc"?-1:1;if(av>bv)return S.fvDir==="asc"?1:-1;return 0});
+// Results stats
+const activeFilters=[];
+if(S.fvStatus!=="all")activeFilters.push(S.fvStatus);
+if(S.fvOwner!=="all")activeFilters.push(S.fvOwner);
+if(S.fvDate!=="all")activeFilters.push({today:"Today",week:"This Week",overdue:"Overdue",upcoming:"Next 7 Days",nodate:"No Date"}[S.fvDate]);
+if(S.fvPriority!=="all")activeFilters.push(S.fvPriority);
+if(S.fvCategory!=="all")activeFilters.push(S.fvCategory);
+const statsRow=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px",flexWrap:"wrap",gap:"8px"}});
+statsRow.append(h("div",{style:{fontSize:"14px",fontWeight:700}},filtered.length+" task"+(filtered.length!==1?"s":"")+" found"));
+if(activeFilters.length){const tags=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
+activeFilters.forEach(f2=>{tags.append(h("span",{style:{padding:"2px 10px",borderRadius:"12px",fontSize:"10px",fontWeight:600,background:"#3b82f622",color:"#60a5fa",border:"1px solid #3b82f633"}},f2))});
+statsRow.append(tags)}
+w.append(statsRow);
+// Task cards
+if(filtered.length){filtered.forEach(t=>{const mc=gm(t.owner);const pc2=PC[t.priority];
+w.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:"var(--card)",border:"1px solid var(--bdr)",borderLeft:"4px solid "+pc2,borderRadius:"10px",marginBottom:"6px",boxShadow:"0 2px 4px rgba(0,0,0,.1)",cursor:"pointer"},onClick:()=>taskMod(t)},
+h("div",{style:{display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}},
+h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",border:"2px solid "+(t.status==="Complete"?"#22c55e":SC[t.status]||"var(--ib)"),background:t.status==="Complete"?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",color:"#fff",cursor:"pointer"},onClick:e=>{e.stopPropagation();if(t.status==="Complete")updStat(t.id,"Not Started");else updStat(t.id,"Complete")}},t.status==="Complete"?"✓":"")),
+h("div",{style:{flex:1,minWidth:0}},
+h("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexWrap:"wrap"}},
+h("span",{style:{fontWeight:600,fontSize:"14px",textDecoration:t.status==="Complete"?"line-through":"none",color:t.status==="Complete"?"var(--mut)":"var(--txt)"}},t.title),
+t.pendingApproval?h("span",{style:{fontSize:"9px",padding:"1px 6px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600}},"⏳ Pending"):null),
+h("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginTop:"3px",fontSize:"11px",color:"var(--mut)",flexWrap:"wrap"}},
+h("span",{style:{display:"flex",alignItems:"center",gap:"3px"}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},t.owner?.charAt(0)||"?"),t.owner),
+t.dueDate?h("span",{style:{color:t.dueDate<tdy&&t.status!=="Complete"?"#ef4444":"var(--mut)"}},fd(t.dueDate,{month:"short",day:"numeric"})):null,
+t.category?h("span",{},t.category):null,
+t.recurring&&t.recurring!=="none"?h("span",{style:{color:"#22c55e"}},"♻️"):null)),
+h("div",{style:{display:"flex",alignItems:"center",gap:"8px",flexShrink:0}},
+t.points?h("span",{className:"ptb",style:{fontSize:"10px",padding:"1px 7px"}},"⭐ "+t.points):null,
+h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:pc2+"22",color:pc2,fontWeight:600,border:"1px solid "+pc2+"33"}},t.priority),
+h("button",{className:"dx",onClick:e=>{e.stopPropagation();delTask(t.id)}},"✕"))))})}
+// Empty state
+if(!filtered.length){w.append(h("div",{style:{textAlign:"center",padding:"40px 20px"}},h("div",{style:{fontSize:"64px",marginBottom:"12px"}},"🔍"),h("div",{style:{fontSize:"20px",fontWeight:700}},"No tasks match your filters"),h("div",{style:{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}},"Try adjusting your filters or reset them")))}
+return w}
+
 // ── Grocery View ──
 function rGrocery(){const w=h("div");
 const items=S.grocery.sort((a,b)=>{if(a.checked!==b.checked)return a.checked?1:-1;const ai=AISLES.findIndex(x=>x.id===a.aisle),bi=AISLES.findIndex(x=>x.id===b.aisle);return ai-bi});
@@ -1098,7 +1211,7 @@ if(overdueTasks.length>0&&!S._overdueDismissed){const byOwner={};overdueTasks.fo
 // Pending approvals banner (parents only)
 const pendingTasks=S.tasks.filter(t=>t.pendingApproval&&t.status==="Complete");
 if(pendingTasks.length>0&&isParent()){const pBanner=h("div",{style:{background:"linear-gradient(135deg,#1e3a5f,#1e40af)",border:"1px solid #3b82f6",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px"}},h("div",{style:{fontWeight:700,fontSize:"14px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontSize:"20px"}},"✅"),""+pendingTasks.length+" Task"+(pendingTasks.length!==1?"s":"")+" Waiting for Approval"));pendingTasks.forEach(t=>{const mc=gm(t.owner);pBanner.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 12px",background:"#0f172a",borderRadius:"8px",marginBottom:"6px"}},avEl(mc||{name:t.owner,color:"#64748b"},28),h("div",{style:{flex:1}},h("div",{style:{fontWeight:600,fontSize:"13px"}},t.title),h("div",{style:{fontSize:"11px",color:"#64748b"}},t.owner+" · "+fd(t.dueDate,{month:"short",day:"numeric"})+(t.points?" · ⭐ "+t.points+" pts":""))),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"none",background:"#22c55e",color:"#fff",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>approveTask(t.id)},"✓ Approve"),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"1px solid #ef444466",background:"transparent",color:"#ef4444",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>rejectTask(t.id)},"✗ Reject")))});c.append(pBanner)}
-switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"grocery":c.append(rGrocery());break;case"meals":c.append(rMeals());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
+switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"grocery":c.append(rGrocery());break;case"meals":c.append(rMeals());break;case"filter":c.append(rFilter());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
 $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventListener("click",closeSB);$("addTaskBtn").addEventListener("click",()=>{closeSB();taskMod(null)});$("addTaskBtn2").addEventListener("click",()=>taskMod(null));$("membersBtn").addEventListener("click",()=>{closeSB();membersMod()});$("reportBtn").addEventListener("click",()=>{closeSB();reportMod()});
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
