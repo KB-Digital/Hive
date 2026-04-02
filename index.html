@@ -1651,7 +1651,24 @@ h("div",{style:{fontSize:"12px",color:"var(--mut)",marginTop:"2px"}},"Teacher: "
 if(isTeacher){
 infoRow.append(h("div",{style:{display:"flex",gap:"6px",flexWrap:"wrap"}},
 h("button",{className:"bp",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>classroomAssignMod(null,cr.id)},"📝 Add Assignment"),
-h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>{navigator.clipboard?.writeText(cr.classCode);alert("Classroom code copied: "+cr.classCode)}},"📋 Code: "+cr.classCode)))}
+h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>{navigator.clipboard?.writeText(cr.classCode);alert("Classroom code copied: "+cr.classCode)}},"📋 Code: "+cr.classCode),
+h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px",borderColor:"#ef444444",color:"#ef4444"},onClick:async()=>{if(!confirm("Remove classroom '"+cr.name+"'? All assignments will be deleted. Students will keep any synced tasks in their family app."))return;
+// Delete all assignments first
+const aSnap=await db.collection("classrooms").doc(cr.id).collection("assignments").get();
+const batch=db.batch();aSnap.docs.forEach(d=>batch.delete(d.ref));await batch.commit();
+// Delete the classroom code
+if(cr.classCode){try{await db.collection("classroomCodes").doc(cr.classCode).delete()}catch(e){}}
+// Delete the classroom
+await db.collection("classrooms").doc(cr.id).delete();
+S.classrooms=S.classrooms.filter(c=>c.id!==cr.id);S.activeClassroom=S.classrooms[0]?.id||null;S.classroomTasks=[];render()
+}},"🗑️ Remove Classroom")))}
+if(!isTeacher){
+infoRow.append(h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px",borderColor:"#ef444444",color:"#ef4444"},onClick:async()=>{if(!confirm("Leave classroom '"+cr.name+"'? Synced assignments will stay in your School view."))return;
+const updStudents=(cr.students||[]).filter(s=>s.uid!==currentUser.uid);
+const updUids=(cr.studentUids||[]).filter(u=>u!==currentUser.uid);
+await db.collection("classrooms").doc(cr.id).update({students:updStudents,studentUids:updUids});
+S.classrooms=S.classrooms.filter(c=>c.id!==cr.id);S.activeClassroom=S.classrooms[0]?.id||null;S.classroomTasks=[];render()
+}},"Leave Classroom"))}
 info.append(infoRow);w.append(info);
 // Student roster (teacher view)
 if(isTeacher&&students.length){
@@ -1659,7 +1676,12 @@ const roster=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{classN
 const rg=h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
 students.forEach(st=>{rg.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"8px 12px",background:"var(--ibg)",borderRadius:"10px",border:"1px solid var(--ib)"}},
 h("span",{style:{width:"28px",height:"28px",borderRadius:"50%",background:st.color||"#3b82f6",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:700,color:"#fff"}},st.name?.charAt(0)||"?"),
-h("span",{style:{fontSize:"13px",fontWeight:600}},st.name)))});
+h("span",{style:{fontSize:"13px",fontWeight:600,flex:1}},st.name),
+h("button",{className:"dx",style:{fontSize:"10px",opacity:.7},onClick:()=>{if(!confirm("Remove "+st.name+" from this classroom?"))return;
+const updStudents=students.filter(s=>s.uid!==st.uid);
+const updUids=(cr.studentUids||[]).filter(u=>u!==st.uid);
+db.collection("classrooms").doc(cr.id).update({students:updStudents,studentUids:updUids})}},
+"✕")))});
 roster.append(rg);w.append(roster)}
 if(!isTeacher&&students.length===0){
 w.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"Waiting for teacher to set up assignments..."))}
