@@ -337,7 +337,7 @@ return pinBox}
 function deviceMemberPicker(force){const bd=h("div",{className:"mbd"});
 bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"👋"),h("div",{style:{fontSize:"20px",fontWeight:700,marginBottom:"4px"}},"Who's using this device?"),h("div",{style:{fontSize:"13px",color:"#64748b"}},"Pick your name to see your tasks, points, and messages")));
 const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"10px",marginBottom:"16px"}});
-S.members.filter(m=>m.role!=="teacher").forEach(m=>{grid.append(h("button",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",padding:"16px 8px",borderRadius:"14px",border:"2px solid "+m.color+"44",background:m.color+"11",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"},onClick:()=>{if(m.role==="parent"){// Show PIN screen
+S.members.forEach(m=>{grid.append(h("button",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px",padding:"16px 8px",borderRadius:"14px",border:"2px solid "+m.color+"44",background:m.color+"11",cursor:"pointer",fontFamily:"inherit",transition:"all .15s"},onClick:()=>{if(m.role==="parent"||m.role==="parent-teacher"){// Show PIN screen
 const pinContent=h("div",{className:"modal",style:{maxWidth:"360px"}});
 pinContent.append(h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔒 Parent Access"),h("button",{className:"ib",onClick:()=>pinOv.remove()},"✕")));
 pinContent.append(showPinEntry(m.name,()=>{setDeviceMember(m.name);ov_.remove()},null));
@@ -527,7 +527,7 @@ list.forEach((mb,mi)=>{
 if(!mb.role)mb.role="parent";
 const avBtn=h("div",{style:{cursor:"pointer",position:"relative"},onClick:()=>{showAvatarPicker(mb,mi)}});avBtn.append(avEl(mb,44));
 const n=h("input",{type:"text",className:"fi",value:mb.name,style:{flex:"1",fontSize:"14px",fontWeight:600,padding:"6px 10px"},onInput:e=>mb.name=e.target.value,onFocus:e=>e.target.select()});
-const ROLES=["parent","child","teacher","parent-teacher"];const ROLE_LABELS={parent:"👨 Parent",child:"👦 Child",teacher:"🍎 Teacher","parent-teacher":"👨‍🏫 Parent + Teacher"};const ROLE_COLORS={parent:"#3b82f6",child:"#f59e0b",teacher:"#22c55e","parent-teacher":"#8b5cf6"};
+const ROLES=["parent","child","parent-teacher"];const ROLE_LABELS={parent:"👨 Parent",child:"👦 Child","parent-teacher":"👨‍🏫 Parent + Teacher"};const ROLE_COLORS={parent:"#3b82f6",child:"#f59e0b","parent-teacher":"#8b5cf6"};
 const roleBtn=h("button",{style:{padding:"3px 10px",borderRadius:"12px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(ROLE_COLORS[mb.role]||"#3b82f6")+"44",background:(ROLE_COLORS[mb.role]||"#3b82f6")+"18",color:ROLE_COLORS[mb.role]||"#3b82f6",whiteSpace:"nowrap"},onClick:()=>{const ri=ROLES.indexOf(mb.role);mb.role=ROLES[(ri+1)%ROLES.length];rr()}},ROLE_LABELS[mb.role]||"👨 Parent");
 const cs=h("div",{style:{display:"flex",gap:"3px",flexShrink:0}});MC.slice(0,6).forEach(c=>cs.append(h("button",{style:{width:"16px",height:"16px",borderRadius:"50%",background:c,border:mb.color===c?"2px solid #fff":"2px solid transparent",cursor:"pointer",padding:0},onClick:()=>{mb.color=c;rr()}})));
 bd.append(h("div",{className:"mr",style:{alignItems:"center",flexWrap:"wrap",gap:"6px"}},avBtn,h("div",{style:{flex:1,minWidth:"100px",display:"flex",flexDirection:"column",gap:"4px"}},n,roleBtn),cs,h("button",{className:"ib",style:{color:"#ef4444",fontSize:"12px"},onClick:()=>{list=list.filter(m=>m.id!==mb.id);rr()}},"✕")))})}
@@ -663,7 +663,7 @@ addWalletTx(m.name,amt,"earn","Claimed $"+amt+" for "+ptsCost+" pts")}}},
 h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name))))});
 wc.append(cashGrid);
 // Wallet balances per member
-const walletMembers=S.members.filter(m=>m.role!=="teacher");
+const walletMembers=S.members;
 wc.append(h("div",{style:{fontSize:"12px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"💰 Balances"));
 walletMembers.forEach(m=>{const bal=getWalletBalance(m.name);const mc=gm(m.name);
 wc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 12px",background:"#1e293b44",borderRadius:"10px",marginBottom:"6px",borderLeft:"3px solid "+(mc?.color||"#64748b")}},
@@ -810,24 +810,25 @@ function markRead(msgIds){if(!householdId||!currentUser||!msgIds.length)return;
 const unique=[...new Set(msgIds)].slice(0,50);
 const batch=db.batch();unique.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
 function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
-function canSeeThread(tid,myName,myRole){if(tid==="general")return myRole!=="teacher";if(tid.startsWith("teacher_"))return tid==="teacher_"+myName||myRole!=="teacher";if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
+function canSeeThread(tid,myName,myRole){if(tid==="general")return true;if(tid.startsWith("classroom_"))return true;if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
 function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
-const teachers=S.members.filter(m=>m.role==="teacher");
 const myRole=getMyRole();const me=getMe();const myName=me?.name||"";
 // Build all possible threads
 const allThreads=[];
-if(myRole!=="teacher")allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6"});
-teachers.forEach(t=>{allThreads.push({id:"teacher_"+t.name,label:"🍎 "+t.name,sub:"Teacher",icon:"🍎",color:t.color||"#22c55e",avatar:t})});
-if(myRole!=="teacher"){S.members.filter(m=>m.name!==myName&&m.role!=="teacher").forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m})})}
+allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6"});
+// Classroom threads — teachers can message students and vice versa
+S.classrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
+allThreads.push({id:"classroom_"+cr.id,label:"🏫 "+cr.name,sub:isT?"Message your students":"Message your teacher",icon:"🏫",color:"#8b5cf6"})});
+// DMs between family members
+S.members.filter(m=>m.name!==myName).forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m})});
 const threads=allThreads.filter(t=>canSeeThread(t.id,myName,myRole));
-if(myRole==="teacher"&&!threads.length)threads.push({id:"teacher_"+myName,label:"🍎 "+myName,sub:"Your channel",icon:"🍎",color:me?.color||"#22c55e"});
 const activeThread=threads.find(t=>t.id===S.msgThread)?S.msgThread:(threads[0]?.id||"general");
 const threadMsgs=S.messages.filter(m=>m.thread===activeThread);
 const unreadIds=threadMsgs.filter(m=>!m.readBy?.includes(currentUser?.uid)).map(m=>m.id);
 if(unreadIds.length)setTimeout(()=>markRead(unreadIds),500);
 // === SIDEBAR ===
 const tl=h("div",{style:{width:"220px",flexShrink:0,borderRight:"1px solid var(--bdr)",overflowY:"auto",display:"flex",flexDirection:"column",gap:"2px",padding:"8px 10px 8px 0"}});
-if(myRole!=="teacher")tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"4px 12px 8px"}},"Conversations"));
+tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"4px 12px 8px"}},"Conversations"));
 threads.forEach(t=>{const unread=S.messages.filter(m=>m.thread===t.id&&!m.readBy?.includes(currentUser?.uid)).length;
 const lastMsg=S.messages.filter(m=>m.thread===t.id).slice(-1)[0];
 const isActive=activeThread===t.id;
@@ -850,7 +851,7 @@ h("div",{style:{fontSize:"11px",color:"var(--mut)"}},threadMsgs.length+" message
 threadMsgs.length&&isParent()?h("button",{style:{padding:"3px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid #ef444444",background:"transparent",color:"#ef4444"},onClick:()=>{if(!confirm("Clear all "+threadMsgs.length+" messages in this chat? This cannot be undone."))return;const batch=db.batch();threadMsgs.forEach(m=>{batch.delete(db.collection("households").doc(householdId).collection("messages").doc(m.id))});batch.commit().catch(e=>console.error("Clear failed:",e))}},"🗑️ Clear"):null)));const msgScroll=h("div",{style:{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:"8px"}});
 const renderText=(txt)=>{const parts=[];let last=0;const regex=/@(\w+)/g;let match;while((match=regex.exec(txt))!==null){if(match.index>last)parts.push(document.createTextNode(txt.slice(last,match.index)));const mn=match[1];const mm=S.members.find(x=>x.name.toLowerCase()===mn.toLowerCase());parts.push(h("span",{style:{background:(mm?.color||"#3b82f6")+"33",color:mm?.color||"#60a5fa",fontWeight:600,padding:"0 3px",borderRadius:"3px"}},"@"+mn));last=regex.lastIndex}if(last<txt.length)parts.push(document.createTextNode(txt.slice(last)));const c=h("span",{});parts.forEach(p=>c.append(p));return c};
 if(threadMsgs.length){threadMsgs.forEach(m=>{const isMe=m.senderUid===currentUser?.uid;const taggedTask=m.taggedTaskId?S.tasks.find(t=>t.id===m.taggedTaskId):null;
-const roleBadge=m.senderRole==="teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#22c55e22",color:"#22c55e",border:"1px solid #22c55e44",fontWeight:600,marginLeft:"4px"}},"Teacher"):m.senderRole==="parent-teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#8b5cf622",color:"#8b5cf6",border:"1px solid #8b5cf644",fontWeight:600,marginLeft:"4px"}},"Parent+Teacher"):m.senderRole==="child"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600,marginLeft:"4px"}},"Student"):null;
+const roleBadge=m.senderRole==="parent-teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#8b5cf622",color:"#8b5cf6",border:"1px solid #8b5cf644",fontWeight:600,marginLeft:"4px"}},"Teacher"):m.senderRole==="child"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600,marginLeft:"4px"}},"Student"):null;
 const bubble=h("div",{style:{background:isMe?"#1e3a5f":"var(--ibg)",border:"1px solid "+(m.urgent?"#ef444466":isMe?"#3b82f644":"var(--ib)"),borderRadius:isMe?"12px 12px 2px 12px":"12px 12px 12px 2px",padding:"8px 12px",fontSize:"13px",lineHeight:"1.4",color:"var(--txt)",wordBreak:"break-word"}});
 bubble.append(renderText(m.text));
 msgScroll.append(h("div",{style:{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",maxWidth:"80%",alignSelf:isMe?"flex-end":"flex-start"}},
@@ -890,7 +891,7 @@ chatArea.append(compose);w.append(chatArea);
 const isMobile=window.innerWidth<=768;
 if(isMobile){tl.style.display=S._showThreadList!==false?"flex":"none";tl.style.width="100%";tl.style.padding="8px";tl.style.borderRight="none";chatArea.style.display=S._showThreadList!==false?"none":"flex";
 if(S._showThreadList===false){chatArea.firstChild.prepend(h("button",{style:{background:"none",border:"none",color:"var(--blue)",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",padding:"0",marginRight:"12px"},onClick:()=>{S._showThreadList=true;render()}},"← Back"))}
-threads.forEach((_,i)=>{const idx=i+(myRole!=="teacher"?1:0);const btn=tl.children[idx];if(btn){const oc=btn.onclick;btn.onclick=()=>{S._showThreadList=false;oc?.()}}})}
+threads.forEach((_,i)=>{const idx=i+1;const btn=tl.children[idx];if(btn){const oc=btn.onclick;btn.onclick=()=>{S._showThreadList=false;oc?.()}}})}
 return w}
 function rEvents(){const tdy=td();const fm=S.evFlt||"all";const fc=S.evCat||"all";
 const allEv=S.tasks.filter(t=>t.isGeneralEvent);
@@ -1197,7 +1198,7 @@ const slotSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.slo
 MEAL_SLOTS.forEach(s=>{const o=h("option",{value:s},s);if(s===f.slot)o.selected=true;slotSel.append(o)});
 const cookSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.cook=e.target.value}});
 cookSel.append(h("option",{value:""},"No one assigned"));
-S.members.filter(m=>m.role!=="teacher").forEach(m=>{const o=h("option",{value:m.name},m.name);if(m.name===f.cook)o.selected=true;cookSel.append(o)});
+S.members.forEach(m=>{const o=h("option",{value:m.name},m.name);if(m.name===f.cook)o.selected=true;cookSel.append(o)});
 const dateInp=h("input",{type:"date",className:"fi",value:f.date,onChange:e=>{f.date=e.target.value}});
 const notesInp=h("textarea",{className:"fi",value:f.notes||"",placeholder:"Recipe link, notes, or instructions...",rows:3,style:{resize:"vertical"},onChange:e=>{f.notes=e.target.value}});
 const ingInp=h("textarea",{className:"fi",value:f.ingredients||"",placeholder:"One ingredient per line\ne.g.:\nChicken breast\nRice\nBroccoli",rows:4,style:{resize:"vertical"},onChange:e=>{f.ingredients=e.target.value}});
@@ -1219,18 +1220,17 @@ if(isE){mc.doc(existing.id).update(data)}else{mc.add({...data,timestamp:firebase
 ov_.remove()}},(isE?"Save":"Add")+" Meal")));
 const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
 
-function render(){const myRole=getMyRole();const teacherMode=myRole==="teacher";
+function render(){const myRole=getMyRole();
 const isClassroomTeacher=S.classrooms.some(c=>c.teacherUid===currentUser?.uid)||(myRole==="parent-teacher");
-let visibleViews=teacherMode?VIEWS.filter(v=>v.id==="school"||v.id==="messages"):VIEWS;
+let visibleViews=[...VIEWS];
 if(!isClassroomTeacher){visibleViews=visibleViews.filter(v=>v.id!=="classroom")}
-if(teacherMode&&!visibleViews.find(v=>v.id===S.view)){S.view="school"}
+if(myRole==="parent-teacher"&&!visibleViews.find(v=>v.id===S.view)){S.view="dashboard"}
 const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
 visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;nav.append(h("button",{className:"nav-item"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},h("span",{style:{fontSize:"16px",width:"20px",textAlign:"center"}},v.icon),v.label,unread?h("span",{style:{marginLeft:"auto",background:"#ef4444",color:"#fff",fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"10px",minWidth:"18px",textAlign:"center"}},String(unread)):null))});const tabs=$("mobileTabs");tabs.innerHTML="";visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;tabs.append(h("button",{className:"mobile-tab"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},v.icon+" "+v.label+(unread?" ("+unread+")":"")))});$("memberCount").textContent=S.members.length;const av=$("memberAvatars");av.innerHTML="";S.members.slice(0,5).forEach(m=>av.append(avEl(m,24)));const v=visibleViews.find(x=>x.id===S.view)||visibleViews[0];$("viewTitle").textContent=v.icon+" "+v.label+" View";$("topDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-// Hide sidebar buttons for teachers
-$("addTaskBtn").style.display=teacherMode?"none":"";
-$("reportBtn").style.display=teacherMode?"none":"";
-$("pdfBtn").style.display=teacherMode?"none":"";
-$("membersBtn").style.display=teacherMode?"none":"";
+$("addTaskBtn").style.display="";
+$("reportBtn").style.display="";
+$("pdfBtn").style.display="";
+$("membersBtn").style.display="";
 updateNotifBtn();
 // User chip
 const uc=$("userChip");uc.innerHTML="";const chipMe=getMe();if(chipMe){uc.append(avEl(chipMe,22));uc.append(h("span",{},chipMe.name));if(deviceMemberName){uc.append(h("span",{style:{fontSize:"8px",background:"#f59e0b33",color:"#f59e0b",padding:"1px 5px",borderRadius:"6px",fontWeight:700,marginLeft:"2px"}},"👤"))}uc.onclick=()=>deviceMemberPicker(false)}else if(currentUser){uc.append(h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:700,color:"#fff"}},currentUser.displayName?.charAt(0)||"?"));uc.append(h("span",{},currentUser.displayName?.split(" ")[0]||"Me"));uc.onclick=()=>deviceMemberPicker(false)}
@@ -1303,8 +1303,8 @@ h("div",{className:"mft"},h("button",{className:"bs",onClick:()=>ov_.remove()},"
 const code=inp.value.trim().toUpperCase();if(code.length!==6){errDiv.textContent="Code must be 6 characters";errDiv.classList.add("show");return}
 try{const cd=await db.collection("inviteCodes").doc(code).get();
 if(!cd.exists){errDiv.textContent="Invalid code. Please check and try again.";errDiv.classList.add("show");return}
-const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";
-const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};
+const hId=cd.data().householdId;
+const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:"child",avatar:"",photo:""};
 await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
 await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});
 // Switch to the new household
@@ -1393,9 +1393,9 @@ $("createBackBtn").addEventListener("click",()=>{$("householdOptions").style.dis
 $("joinHouseholdBtn").addEventListener("click",()=>{$("householdOptions").style.display="none";$("joinForm").style.display=""});
 $("joinBackBtn").addEventListener("click",()=>{$("householdOptions").style.display="";$("joinForm").style.display="none"});
 
-$("createConfirmBtn").addEventListener("click",async()=>{const name=$("householdNameInput").value.trim();if(!name)return;try{const code=genCode();const tCode=genCode();const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[0],uid:currentUser.uid,role:"parent",avatar:"",photo:""};const ref=await db.collection("households").add({name,members:[mem],memberUids:[currentUser.uid],rewards:[...DR],inviteCode:code,teacherInviteCode:tCode,createdBy:currentUser.uid});await db.collection("inviteCodes").doc(code).set({householdId:ref.id,role:"family"});await db.collection("inviteCodes").doc(tCode).set({householdId:ref.id,role:"teacher"});await db.collection("users").doc(currentUser.uid).set({householdId:ref.id,householdIds:firebase.firestore.FieldValue.arrayUnion(ref.id),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=ref.id;localStorage.setItem("hive_active_household",ref.id);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
+$("createConfirmBtn").addEventListener("click",async()=>{const name=$("householdNameInput").value.trim();if(!name)return;try{const code=genCode();const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[0],uid:currentUser.uid,role:"parent",avatar:"",photo:""};const ref=await db.collection("households").add({name,members:[mem],memberUids:[currentUser.uid],rewards:[...DR],inviteCode:code,createdBy:currentUser.uid});await db.collection("inviteCodes").doc(code).set({householdId:ref.id,role:"family"});await db.collection("users").doc(currentUser.uid).set({householdId:ref.id,householdIds:firebase.firestore.FieldValue.arrayUnion(ref.id),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=ref.id;localStorage.setItem("hive_active_household",ref.id);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
-$("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const codeRole=cd.data().role||"family";const joinRole=codeRole==="teacher"?"teacher":"child";const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:joinRole,avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;localStorage.setItem("hive_active_household",hId);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
+$("joinConfirmBtn").addEventListener("click",async()=>{const code=$("inviteCodeInput").value.trim().toUpperCase();if(code.length!==6)return;try{const cd=await db.collection("inviteCodes").doc(code).get();if(!cd.exists)throw new Error("Invalid code");const hId=cd.data().householdId;const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[Math.floor(Math.random()*MC.length)],uid:currentUser.uid,role:"child",avatar:"",photo:""};await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});householdId=hId;localStorage.setItem("hive_active_household",hId);loadHousehold()}catch(e){$("householdError").textContent=e.message;$("householdError").classList.add("show")}});
 
 // ── Notifications ──
 let notifEnabled=localStorage.getItem("hive_notif")==="on";
@@ -1436,9 +1436,9 @@ if(!canSeeThread(m.thread,me.name,me.role||"parent"))return;
 const mentionsMe=m.mentions?.includes(me.name);
 const isDM=m.thread.startsWith("dm_")&&m.thread.includes(me.name);
 const isUrgent=m.urgent;
-const isTeacherThread=m.thread.startsWith("teacher_");
-// Notify for: urgent messages, @mentions, DMs, or teacher messages
-if(isUrgent||mentionsMe||isDM||isTeacherThread){
+const isClassroomThread=m.thread.startsWith("classroom_");
+// Notify for: urgent messages, @mentions, DMs, or classroom messages
+if(isUrgent||mentionsMe||isDM||isClassroomThread){
 const prefix=isUrgent?"🚨 URGENT: ":mentionsMe?"@"+me.name+": ":"";
 sendNotif(prefix+m.sender+" sent a message",m.text.substring(0,100),"msg-"+m.id)}
 // Also notify for general chat messages (less aggressively)
@@ -1862,8 +1862,7 @@ w.append(evc)}
 }
 return w}
 
-function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";let statusEl;
-async function genTeacherCode(){const tc=genCode();await db.collection("households").doc(householdId).update({teacherInviteCode:tc});await db.collection("inviteCodes").doc(tc).set({householdId,role:"teacher"});ov_.remove();settingsMod()}
+function settingsMod(){const code=currentHousehold?.inviteCode||"------";let statusEl;
 // Build custody section separately
 const custodySection=h("div",{style:{marginBottom:"20px",padding:"16px",background:"#1e293b",borderRadius:"12px",border:"1px solid #334155"}});
 custodySection.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}},h("span",{style:{fontSize:"16px"}},"📅"),h("div",{style:{fontSize:"11px",fontWeight:600,color:"#f59e0b",textTransform:"uppercase"}},"My Custody Week")));
@@ -1876,8 +1875,6 @@ custodySection.append(custodyStatus);
 const bd=h("div",{className:"mbd"},
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Household Name"),h("div",{style:{fontSize:"18px",fontWeight:700}},currentHousehold?.name||"")),
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"👨‍👩‍👧‍👦 Family Invite Code"),h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"6px"}},"Share with family members — they join as a child/parent"),h("div",{className:"invite-code"},code),h("button",{className:"copy-btn",onClick:()=>{navigator.clipboard?.writeText(code)}},"📋 Copy Family Code")),
-h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#22c55e",textTransform:"uppercase",marginBottom:"6px"}},"🍎 Teacher Invite Code"),h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"6px"}},"Share with teachers — they can only see School & Messages"),
-tCode?h("div",{},h("div",{className:"invite-code",style:{color:"#22c55e"}},tCode),h("button",{className:"copy-btn",style:{borderColor:"#22c55e",color:"#22c55e"},onClick:()=>{navigator.clipboard?.writeText(tCode)}},"📋 Copy Teacher Code")):h("button",{className:"bp",style:{background:"linear-gradient(135deg,#22c55e,#16a34a)",width:"100%"},onClick:genTeacherCode},"Generate Teacher Invite Code")),
 custodySection,
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Signed in as"),h("div",{style:{fontSize:"14px"}},currentUser?.displayName||""),h("div",{style:{fontSize:"12px",color:"#64748b"}},currentUser?.email||"")),
 h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{
