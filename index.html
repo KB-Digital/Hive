@@ -270,12 +270,12 @@ const ROOMS=["Any Room","Kitchen","Bathroom","Bedroom","Living Room","Dining Roo
 const PC={Critical:"#ef4444",High:"#f97316",Medium:"#3b82f6",Low:"#22c55e"};
 const SC={"Not Started":"#64748b","In Progress":"#3b82f6",Complete:"#22c55e",Blocked:"#ef4444"};
 const MC=["#3b82f6","#f97316","#22c55e","#a855f7","#ef4444","#eab308","#06b6d4","#ec4899","#14b8a6","#f43f5e"];
-const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"classroom",label:"Classroom",icon:"🏫"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"filter",label:"Filter",icon:"🔍"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
+const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"filter",label:"Filter",icon:"🔍"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],classrooms:[],classroomTasks:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",activeClassroom:null,schoolClassFilter:"all"};
-let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null,classroomUnsubs=[];
+let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],schoolClasses:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",schoolClassFilter:"all"};
+let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
 db.enablePersistence({synchronizeTabs:true}).catch(e=>{if(e.code==="failed-precondition")console.log("Persistence failed: multiple tabs open");else if(e.code==="unimplemented")console.log("Persistence not supported in this browser")});
@@ -379,8 +379,6 @@ async function updStat(id,s){
   }
   // Final completion (parent task or already approved)
   await tc.doc(id).update({status:s,completedBy:s!=="Complete"?"":"",completedToday:s==="Complete"?tpd:0,pendingApproval:false});
-  // Sync status back to classroom if this is a classroom-linked task
-  if(task.classroomTaskId)syncStatusToClassroom({...task,status:s});
   if(s==="Complete"&&task.recurring&&task.recurring!=="none"){
     const{id:_,...data}=task;
     let nextOwner=data.owner;
@@ -727,8 +725,8 @@ if(doneTasks.length>0){w.append(h("div",{style:{fontSize:"14px",fontWeight:600,c
 if(totalToday===0){w.append(h("div",{style:{textAlign:"center",padding:"40px 20px"}},h("div",{style:{fontSize:"64px",marginBottom:"12px"}},"🎉"),h("div",{style:{fontSize:"20px",fontWeight:700}},"No tasks today!"),h("div",{style:{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}},"Enjoy your free time")))}
 return w}
 function rSchool(){const tdy=td();let fm=S.sFlt||"all",fs=S.sSt||"all";const cf=S.schoolClassFilter||"all";
-const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent&&(cf==="all"||t.classroomId===cf||(!t.classroomId&&cf==="all")));
-const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent);
+const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent&&(cf==="all"||t.schoolClass===cf));
+const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent&&(cf==="all"||t.schoolClass===cf));
 const fil=st.filter(t=>fm==="all"||t.owner===fm).filter(t=>fs==="all"||t.status===fs).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
 const filEv=ev.filter(t=>fm==="all"||t.owner===fm).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
 const tot=st.length,dn=st.filter(t=>t.status==="Complete").length,ovd=st.filter(t=>t.status!=="Complete"&&t.dueDate<tdy).length,upc=st.filter(t=>t.status!=="Complete"&&t.dueDate>=tdy).length;
@@ -745,33 +743,36 @@ fb.append(mb);
 const ss=h("select",{style:{background:"#1e293b",border:"1px solid #334155",borderRadius:"8px",padding:"5px 10px",color:"#94a3b8",fontSize:"12px",fontFamily:"inherit",cursor:"pointer"},onChange:e=>{S.sSt=e.target.value;render()}});ss.append(h("option",{value:"all"},"All Statuses"));STATUSES.forEach(s=>{const o=h("option",{value:s},s);if(fs===s)o.selected=true;ss.append(o)});fb.append(ss);w.append(fb);
 // Add buttons row
 const btnRow=h("div",{style:{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}});
-btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",minWidth:"120px"},onClick:()=>{taskMod({title:"",priority:"Medium",urgency:"Urgent",importance:"Important",status:"Not Started",category:"School & Assignments",owner:S.members.find(m=>m.name==="Kids")?.name||S.members[0]?.name||"Me",dueDate:tdy,description:"",points:20,completedBy:"",recurring:"none"})}},"+ Add Assignment"));
+btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",minWidth:"120px"},onClick:()=>{const newTask={title:"",priority:"Medium",urgency:"Urgent",importance:"Important",status:"Not Started",category:"School & Assignments",owner:S.members.find(m=>m.name==="Kids")?.name||S.members[0]?.name||"Me",dueDate:tdy,description:"",points:20,completedBy:"",recurring:"none"};if(S.schoolClassFilter!=="all")newTask.schoolClass=S.schoolClassFilter;taskMod(newTask)}},"+ Add Assignment"));
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)",minWidth:"120px"},onClick:()=>{eventMod(null)}},"+ Add Event"));
-if(isParent()){btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#22c55e,#16a34a)",minWidth:"120px"},onClick:joinClassroomMod},"🏫 Join Classroom"))}
 w.append(btnRow);
-// Classroom dropdown - filters School view by classroom
-const allMyClassrooms=S.classrooms||[];
-if(allMyClassrooms.length){
+// Class dropdown - filters School view by class name
+const schoolClasses=currentHousehold?.schoolClasses||[];
 const crRow=h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px",flexWrap:"wrap"}});
-crRow.append(h("span",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}},"🏫 Classroom:"));
-const crSel=h("select",{className:"ss",style:{fontSize:"12px",fontWeight:600,padding:"6px 10px",minWidth:"180px"},onChange:e=>{
-if(e.target.value==="__join__"){e.target.value=S.schoolClassFilter||"all";joinClassroomMod();return}
+crRow.append(h("span",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}},"🏫 Class:"));
+const crSel=h("select",{className:"ss",style:{fontSize:"12px",fontWeight:600,padding:"6px 10px",minWidth:"160px"},onChange:e=>{
+if(e.target.value==="__add__"){e.target.value=S.schoolClassFilter||"all";
+const name=prompt("Enter a class name (e.g. Mrs. Smith - Math):");
+if(name&&name.trim()){const updated=[...schoolClasses,name.trim()];
+db.collection("households").doc(householdId).update({schoolClasses:updated}).then(()=>render())}
+return}
 S.schoolClassFilter=e.target.value;render()}});
 crSel.append(h("option",{value:"all"},"All Classes"));
-allMyClassrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
-const o=h("option",{value:cr.id},(isT?"📚 ":"📖 ")+cr.name);
-if(cr.id===(S.schoolClassFilter||"all"))o.selected=true;
-crSel.append(o)});
-if(isParent()){crSel.append(h("option",{value:"__join__"},"+ Join Classroom..."))}
+schoolClasses.forEach(cls=>{const o=h("option",{value:cls},cls);if(cls===S.schoolClassFilter)o.selected=true;crSel.append(o)});
+crSel.append(h("option",{value:"__add__"},"+ Add Class..."));
 crRow.append(crSel);
-w.append(crRow)}
+if(S.schoolClassFilter!=="all"){crRow.append(h("button",{className:"dx",style:{fontSize:"11px",color:"#ef4444",opacity:1},onClick:()=>{
+if(!confirm("Remove class '"+S.schoolClassFilter+"'?"))return;
+const updated=schoolClasses.filter(c=>c!==S.schoolClassFilter);
+db.collection("households").doc(householdId).update({schoolClasses:updated});
+S.schoolClassFilter="all";render()}},"✕ Remove"))}
+w.append(crRow);
 // === ASSIGNMENTS SECTION ===
 w.append(h("div",{style:{fontSize:"13px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{},"📝"),h("span",{},"Assignments"+(fil.length?" ("+fil.length+")":""))));
 if(fil.length){const cards=h("div",{style:{display:"flex",flexDirection:"column",gap:"8px"}});fil.forEach(t=>{const mc=gm(t.owner);const io=t.status!=="Complete"&&t.dueDate<tdy;const ids=!io&&t.status!=="Complete"&&t.dueDate<=new Date(Date.now()+2*864e5).toISOString().split("T")[0];
 const card=h("div",{style:{background:"#0f1729",border:"1px solid #1e293b",borderLeft:"4px solid "+(io?"#ef4444":ids?"#f97316":PC[t.priority]),borderRadius:"10px",padding:"14px"}},
 h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"8px"}},h("div",{style:{flex:1}},h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},t.title),t.points?h("span",{className:"ptb",style:{fontSize:"10px",padding:"1px 7px"}},"⭐ "+t.points):null,
-t.classroomName?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🏫 "+t.classroomName):null,
-(()=>{const subj=t.classroomSubject?SUBJECT_MAP[t.classroomSubject]:null;return subj?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:subj.color+"22",color:subj.color,border:"1px solid "+subj.color+"33",fontWeight:600}},subj.icon+" "+subj.label):null})()),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
+t.schoolClass?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#22c55e22",color:"#22c55e",border:"1px solid #22c55e33",fontWeight:600}},"🏫 "+t.schoolClass):null),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
 h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"8px",flexWrap:"wrap"}},
 h("div",{style:{display:"inline-flex",alignItems:"center",gap:"4px"}},h("span",{style:{width:"18px",height:"18px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"#fff"}},t.owner.charAt(0)),h("span",{style:{fontSize:"11px",color:"#94a3b8"}},t.owner)),
 h("span",{style:{fontSize:"11px",color:io?"#ef4444":ids?"#f97316":"#94a3b8",fontWeight:io||ids?600:400}},"📅 "+fd(t.dueDate,{weekday:"short",month:"short",day:"numeric"})+(io?" — OVERDUE":"")+(ids?" — Due Soon":"")),
@@ -810,23 +811,13 @@ function markRead(msgIds){if(!householdId||!currentUser||!msgIds.length)return;
 const unique=[...new Set(msgIds)].slice(0,50);
 const batch=db.batch();unique.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
 function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
-function canSeeThread(tid,myName,myRole){if(!tid)return false;if(tid==="general")return true;if(tid.startsWith("classroom_"))return true;if(tid.startsWith("student_"))return true;if(tid.startsWith("dm_")){const parts=tid.replace("dm_","").split("_");return myName&&parts.includes(myName)}return false}
+function canSeeThread(tid,myName,myRole){if(!tid)return false;if(tid==="general")return true;if(tid.startsWith("dm_")){const parts=tid.replace("dm_","").split("_");return myName&&parts.includes(myName)}return false}
 function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
 const myRole=getMyRole();const me=getMe();const myName=me?.name||"";
-// Build all possible threads
 const allThreads=[];
 allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6",section:"family"});
 // Family DMs
 if(myName){S.members.filter(m=>m.name!==myName).forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m,section:"family"})})}
-// Classroom threads + individual student threads
-S.classrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
-console.log("Classroom thread:",cr.name,"isTeacher:",isT,"students:",cr.students?.length||0);
-allThreads.push({id:"classroom_"+cr.id,label:"🏫 "+cr.name,sub:isT?"Message whole class":"Class announcements",icon:"🏫",color:"#8b5cf6",section:"classroom"});
-// Teacher sees individual student threads
-if(isT&&cr.students&&cr.students.length){cr.students.forEach(st=>{
-allThreads.push({id:"student_"+cr.id+"_"+st.uid,label:"👤 "+st.name,sub:"Private message",icon:"👤",color:st.color||"#64748b",section:"classroom"})})}
-// Students/parents see a thread to message the teacher directly
-if(!isT){allThreads.push({id:"student_"+cr.id+"_"+(currentUser?.uid||""),label:"✉️ "+cr.teacherName,sub:"Private message",icon:"✉️",color:"#8b5cf6",section:"classroom"})}});
 const threads=allThreads.filter(t=>canSeeThread(t.id,myName,myRole));
 const activeThread=threads.find(t=>t.id===S.msgThread)?S.msgThread:(threads[0]?.id||"general");
 const threadMsgs=S.messages.filter(m=>m.thread===activeThread);
@@ -846,11 +837,7 @@ h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between
 h("span",{style:{fontSize:"13px",fontWeight:isActive||unread?700:500,color:isActive?"#60a5fa":"var(--txt)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},t.label),
 unread?h("span",{style:{background:"#ef4444",color:"#fff",fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"8px",minWidth:"16px",textAlign:"center",flexShrink:0}},String(unread)):null),
 lastMsg?h("div",{style:{fontSize:"10px",color:"var(--mut)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},lastMsg.sender+": "+lastMsg.text.substring(0,30)):h("div",{style:{fontSize:"10px",color:"#334155"}},"No messages yet")))};
-threads.filter(t=>t.section==="family").forEach(t=>tl.append(renderThread(t)));
-const crThreads=threads.filter(t=>t.section==="classroom");
-if(crThreads.length){
-tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#8b5cf6",textTransform:"uppercase",letterSpacing:"1px",padding:"12px 12px 8px"}},"🏫 Classrooms"));
-crThreads.forEach(t=>tl.append(renderThread(t)))}
+threads.forEach(t=>tl.append(renderThread(t)));
 w.append(tl);
 // === CHAT ===
 const chatArea=h("div",{style:{flex:1,display:"flex",flexDirection:"column",minWidth:0}});
@@ -1232,10 +1219,7 @@ ov_.remove()}},(isE?"Save":"Add")+" Meal")));
 const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
 
 function render(){const myRole=getMyRole();
-const isClassroomTeacher=S.classrooms.some(c=>c.teacherUid===currentUser?.uid)||(myRole==="parent-teacher");
 let visibleViews=[...VIEWS];
-if(!isClassroomTeacher){visibleViews=visibleViews.filter(v=>v.id!=="classroom")}
-if(myRole==="parent-teacher"&&!visibleViews.find(v=>v.id===S.view)){S.view="dashboard"}
 const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
 visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;nav.append(h("button",{className:"nav-item"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},h("span",{style:{fontSize:"16px",width:"20px",textAlign:"center"}},v.icon),v.label,unread?h("span",{style:{marginLeft:"auto",background:"#ef4444",color:"#fff",fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"10px",minWidth:"18px",textAlign:"center"}},String(unread)):null))});const tabs=$("mobileTabs");tabs.innerHTML="";visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;tabs.append(h("button",{className:"mobile-tab"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},v.icon+" "+v.label+(unread?" ("+unread+")":"")))});$("memberCount").textContent=S.members.length;const av=$("memberAvatars");av.innerHTML="";S.members.slice(0,5).forEach(m=>av.append(avEl(m,24)));const v=visibleViews.find(x=>x.id===S.view)||visibleViews[0];$("viewTitle").textContent=v.icon+" "+v.label+" View";$("topDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
 $("addTaskBtn").style.display="";
@@ -1252,7 +1236,7 @@ if(overdueTasks.length>0&&!S._overdueDismissed){const byOwner={};overdueTasks.fo
 // Pending approvals banner (parents only)
 const pendingTasks=S.tasks.filter(t=>t.pendingApproval&&t.status==="Complete");
 if(pendingTasks.length>0&&isParent()){const pBanner=h("div",{style:{background:"linear-gradient(135deg,#1e3a5f,#1e40af)",border:"1px solid #3b82f6",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px"}},h("div",{style:{fontWeight:700,fontSize:"14px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontSize:"20px"}},"✅"),""+pendingTasks.length+" Task"+(pendingTasks.length!==1?"s":"")+" Waiting for Approval"));pendingTasks.forEach(t=>{const mc=gm(t.owner);pBanner.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 12px",background:"#0f172a",borderRadius:"8px",marginBottom:"6px"}},avEl(mc||{name:t.owner,color:"#64748b"},28),h("div",{style:{flex:1}},h("div",{style:{fontWeight:600,fontSize:"13px"}},t.title),h("div",{style:{fontSize:"11px",color:"#64748b"}},t.owner+" · "+fd(t.dueDate,{month:"short",day:"numeric"})+(t.points?" · ⭐ "+t.points+" pts":""))),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"none",background:"#22c55e",color:"#fff",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>approveTask(t.id)},"✓ Approve"),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"1px solid #ef444466",background:"transparent",color:"#ef4444",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>rejectTask(t.id)},"✗ Reject")))});c.append(pBanner)}
-switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"grocery":c.append(rGrocery());break;case"meals":c.append(rMeals());break;case"classroom":c.append(rClassroom());break;case"filter":c.append(rFilter());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
+switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"grocery":c.append(rGrocery());break;case"meals":c.append(rMeals());break;case"filter":c.append(rFilter());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
 $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventListener("click",closeSB);$("addTaskBtn").addEventListener("click",()=>{closeSB();taskMod(null)});$("addTaskBtn2").addEventListener("click",()=>taskMod(null));$("membersBtn").addEventListener("click",()=>{closeSB();membersMod()});$("reportBtn").addEventListener("click",()=>{closeSB();reportMod()});
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
@@ -1447,9 +1431,8 @@ if(!canSeeThread(m.thread,me.name,me.role||"parent"))return;
 const mentionsMe=m.mentions?.includes(me.name);
 const isDM=m.thread.startsWith("dm_")&&m.thread.includes(me.name);
 const isUrgent=m.urgent;
-const isClassroomThread=m.thread.startsWith("classroom_")||m.thread.startsWith("student_");
-// Notify for: urgent messages, @mentions, DMs, or classroom messages
-if(isUrgent||mentionsMe||isDM||isClassroomThread){
+// Notify for: urgent messages, @mentions, DMs
+if(isUrgent||mentionsMe||isDM){
 const prefix=isUrgent?"🚨 URGENT: ":mentionsMe?"@"+me.name+": ":"";
 sendNotif(prefix+m.sender+" sent a message",m.text.substring(0,100),"msg-"+m.id)}
 // Also notify for general chat messages (less aggressively)
@@ -1503,375 +1486,7 @@ S.messages=newMsgs;debouncedRender()})});
 walletUnsub=db.collection("households").doc(householdId).collection("wallet").onSnapshot(snap=>{S.wallet=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
 groceryUnsub=db.collection("households").doc(householdId).collection("grocery").onSnapshot(snap=>{S.grocery=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
 mealsUnsub=db.collection("households").doc(householdId).collection("meals").onSnapshot(snap=>{S.meals=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
-showScreen("app");updateNotifBtn();loadClassrooms()}
-
-// ── Classroom System ──
-async function loadClassrooms(){
-if(!currentUser)return;
-classroomUnsubs.forEach(u=>u());classroomUnsubs=[];
-// Find classrooms where this user is a teacher or student
-const teacherSnap=await db.collection("classrooms").where("teacherUid","==",currentUser.uid).get();
-const studentSnap=await db.collection("classrooms").where("studentUids","array-contains",currentUser.uid).get();
-const crIds=new Set();const allCr=[];
-teacherSnap.docs.forEach(d=>{crIds.add(d.id);allCr.push({id:d.id,...d.data()})});
-studentSnap.docs.forEach(d=>{if(!crIds.has(d.id)){crIds.add(d.id);allCr.push({id:d.id,...d.data()})}});
-S.classrooms=allCr;
-if(!S.activeClassroom&&allCr.length)S.activeClassroom=allCr[0].id;
-// Listen to active classroom tasks
-if(S.activeClassroom)loadClassroomTasks(S.activeClassroom);
-// Sync after a short delay to ensure family tasks have loaded from snapshot
-setTimeout(()=>syncClassroomToFamily(),2000);
-debouncedRender()}
-
-function loadClassroomTasks(crId){
-classroomUnsubs.forEach(u=>u());classroomUnsubs=[];
-const unsub=db.collection("classrooms").doc(crId).collection("assignments").onSnapshot(snap=>{
-S.classroomTasks=snap.docs.map(d=>({id:d.id,...d.data()}));
-// Re-sync to family whenever classroom assignments change
-syncClassroomToFamily();
-debouncedRender()});
-classroomUnsubs.push(unsub);
-const unsub2=db.collection("classrooms").doc(crId).onSnapshot(doc=>{
-if(!doc.exists)return;
-const idx=S.classrooms.findIndex(c=>c.id===crId);
-if(idx>=0)S.classrooms[idx]={id:crId,...doc.data()};
-else S.classrooms.push({id:crId,...doc.data()});
-debouncedRender()});
-classroomUnsubs.push(unsub2);
-// Also listen to ALL classrooms this user is in for sync
-S.classrooms.forEach(cr=>{
-if(cr.id===crId)return;
-const u=db.collection("classrooms").doc(cr.id).collection("assignments").onSnapshot(()=>{syncClassroomToFamily()});
-classroomUnsubs.push(u)})}
-
-let _syncing=false;
-async function syncClassroomToFamily(){
-if(!householdId||!currentUser||_syncing)return;
-const me=getMe();if(!me)return;
-if(!S.classrooms.length)return;
-_syncing=true;
-try{
-for(const cr of S.classrooms){
-// Fetch assignments from classroom
-let snap;
-try{snap=await db.collection("classrooms").doc(cr.id).collection("assignments").get()}catch(e){console.log("Sync fetch error for "+cr.name+":",e);continue}
-const crAssignIds=new Set(snap.docs.map(d=>d.id));
-// Create or update synced tasks
-for(const adoc of snap.docs){
-const a=adoc.data();
-const existing=S.tasks.find(t=>t.classroomTaskId===adoc.id&&t.classroomId===cr.id);
-if(!existing){
-const isEvt=a.isEvent||false;
-const taskData={
-title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:isEvt?"Not Urgent":"Urgent",importance:"Important",
-status:isEvt?"Not Started":"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
-points:isEvt?0:(a.points||20),completedBy:"",recurring:"none",
-classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||"",classroomSubject:a.subject||""
-};
-if(isEvt){taskData.isEvent=true;taskData.eventTime=a.eventTime||"";taskData.eventCategory="school"}
-try{await db.collection("households").doc(householdId).collection("tasks").add(taskData);
-console.log("✅ Synced "+(isEvt?"event":"assignment")+": "+a.title+" | owner: "+me.name)}catch(e){console.error("Sync write error:",e)}
-}else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
-try{await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
-title:a.title,description:a.description||"",dueDate:a.dueDate||""})}catch(e){console.error("Sync update error:",e)}}}
-// Delete sync: remove family tasks whose classroom assignment no longer exists
-const orphanedTasks=S.tasks.filter(t=>t.classroomId===cr.id&&t.classroomTaskId&&!crAssignIds.has(t.classroomTaskId));
-for(const ot of orphanedTasks){
-try{await db.collection("households").doc(householdId).collection("tasks").doc(ot.id).delete();
-console.log("🗑️ Removed synced task: "+ot.title+" (assignment deleted by teacher)")}catch(e){console.error("Sync delete error:",e)}}}
-}catch(e){console.error("Classroom sync error:",e)}
-_syncing=false}
-async function syncStatusToClassroom(task){
-if(!task.classroomTaskId||!task.classroomId||!currentUser)return;
-const me=getMe();if(!me)return;
-// Update the student's status in the classroom assignment
-try{await db.collection("classrooms").doc(task.classroomId).collection("assignments").doc(task.classroomTaskId).update({
-["studentStatus."+currentUser.uid]:{name:me.name,status:task.status,completedAt:task.status==="Complete"?new Date().toISOString():null}
-})}catch(e){console.log("Classroom sync failed:",e)}}
-
-async function createClassroom(name){
-if(!currentUser||!name.trim())return;
-const code=genCode();
-const ref=await db.collection("classrooms").add({
-name:name.trim(),teacherUid:currentUser.uid,teacherName:currentUser.displayName||"Teacher",
-classCode:code,students:[],studentUids:[],createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-await db.collection("classroomCodes").doc(code).set({classroomId:ref.id});
-S.activeClassroom=ref.id;
-await loadClassrooms();return code}
-
-async function joinClassroom(code){
-if(!currentUser||!code.trim())throw new Error("Invalid code");
-const codeDoc=await db.collection("classroomCodes").doc(code.toUpperCase()).get();
-if(!codeDoc.exists)throw new Error("Invalid classroom code");
-const crId=codeDoc.data().classroomId;
-const me=getMe();
-const student={uid:currentUser.uid,name:me?.name||currentUser.displayName||"Student",
-householdId:householdId,color:me?.color||"#3b82f6"};
-await db.collection("classrooms").doc(crId).update({
-students:firebase.firestore.FieldValue.arrayUnion(student),
-studentUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-S.activeClassroom=crId;
-await loadClassrooms()}
-
-function createClassroomMod(){
-const bd=h("div",{className:"mbd"});
-bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},
-h("div",{style:{fontSize:"40px",marginBottom:"8px"}},"🏫"),
-h("div",{style:{fontSize:"18px",fontWeight:700,marginBottom:"4px"}},"Create a Classroom"),
-h("div",{style:{fontSize:"13px",color:"#64748b"}},"Add a name for your class. You'll get a code for students to join.")));
-const ni=h("input",{type:"text",className:"fi",placeholder:"e.g. Mrs. Smith - 5th Grade Math"});
-const errDiv=h("div",{className:"error-msg",style:{marginTop:"12px"}});
-bd.append(h("div",{className:"fg"},h("label",{},"Classroom Name"),ni),errDiv);
-const m=h("div",{className:"modal",style:{maxWidth:"400px"}},
-h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🏫 New Classroom"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
-h("div",{className:"mft"},h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),h("button",{className:"bp",onClick:async()=>{
-try{const code=await createClassroom(ni.value);ov_.remove();
-// Show success with code
-const sc=h("div",{className:"modal",style:{maxWidth:"400px"}},
-h("div",{className:"mhd"},h("h3",{style:{margin:0}},"✅ Classroom Created"),h("button",{className:"ib",onClick:()=>ov2.remove()},"✕")),
-h("div",{className:"mbd",style:{textAlign:"center"}},
-h("div",{style:{fontSize:"13px",color:"#64748b",marginBottom:"12px"}},"Share this code with your students:"),
-h("div",{className:"invite-code",style:{color:"#22c55e",fontSize:"28px"}},code),
-h("button",{className:"copy-btn",style:{borderColor:"#22c55e",color:"#22c55e"},onClick:()=>{navigator.clipboard?.writeText(code)}},"📋 Copy Classroom Code")),
-h("div",{className:"mft"},h("button",{className:"bp",onClick:()=>{ov2.remove();S.view="classroom";render()}},"Go to Classroom")));
-const ov2=showMod(sc)
-}catch(e){errDiv.textContent=e.message;errDiv.classList.add("show")}
-}},"Create Classroom")));
-const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
-
-function joinClassroomMod(){
-const bd=h("div",{className:"mbd"});
-bd.append(h("div",{style:{textAlign:"center",marginBottom:"20px"}},
-h("div",{style:{fontSize:"40px",marginBottom:"8px"}},"🔗"),
-h("div",{style:{fontSize:"18px",fontWeight:700,marginBottom:"4px"}},"Join a Classroom"),
-h("div",{style:{fontSize:"13px",color:"#64748b"}},"Enter the 6-character code from your teacher")));
-const inp=h("input",{type:"text",className:"fi",placeholder:"Enter code",maxLength:"6",style:{textTransform:"uppercase",letterSpacing:"4px",textAlign:"center",fontSize:"22px",fontWeight:700,padding:"14px"}});
-const errDiv=h("div",{className:"error-msg",style:{marginTop:"12px"}});
-bd.append(h("div",{className:"fg"},h("label",{},"Classroom Code"),inp),errDiv);
-const m=h("div",{className:"modal",style:{maxWidth:"400px"}},
-h("div",{className:"mhd"},h("h3",{style:{margin:0}},"🔗 Join Classroom"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
-h("div",{className:"mft"},h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),h("button",{className:"bp",onClick:async()=>{
-try{await joinClassroom(inp.value.trim());ov_.remove();S.view="classroom";render()
-}catch(e){errDiv.textContent=e.message;errDiv.classList.add("show")}
-}},"Join Classroom")));
-const ov_=showMod(m);setTimeout(()=>inp.focus(),100)}
-
-function classroomAssignMod(existing,crId){
-const isE=!!existing;
-const f=existing?{...existing}:{title:"",description:"",dueDate:td(),points:20,priority:"Medium",subject:"other"};
-const bd=h("div",{className:"mbd"});
-const ti=h("input",{type:"text",className:"fi",value:f.title,placeholder:"Assignment title",onChange:e=>{f.title=e.target.value}});
-const desc=h("textarea",{className:"fi",value:f.description||"",placeholder:"Instructions or details...",rows:3,style:{resize:"vertical"},onChange:e=>{f.description=e.target.value}});
-const dateInp=h("input",{type:"date",className:"fi",value:f.dueDate,onChange:e=>{f.dueDate=e.target.value}});
-const ptsInp=h("input",{type:"number",className:"fi",value:String(f.points||20),min:"0",onChange:e=>{f.points=parseInt(e.target.value)||0}});
-const prioSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.priority=e.target.value}});
-PRIORITIES.forEach(p=>{const o=h("option",{value:p},p);if(p===f.priority)o.selected=true;prioSel.append(o)});
-const subjSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.subject=e.target.value}});
-SUBJECTS.forEach(s=>{const o=h("option",{value:s.id},s.icon+" "+s.label);if(s.id===(f.subject||"other"))o.selected=true;subjSel.append(o)});
-bd.append(
-h("div",{className:"fg"},h("label",{},"Assignment Title"),ti),
-h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Subject"),subjSel),h("div",{className:"fg"},h("label",{},"Priority"),prioSel)),
-h("div",{className:"fg"},h("label",{},"Description / Instructions"),desc),
-h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Due Date"),dateInp),h("div",{className:"fg"},h("label",{},"Points"),ptsInp)));
-const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
-h("div",{className:"mhd"},h("h3",{style:{margin:0}},isE?"✏️ Edit Assignment":"📝 Add Assignment"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
-h("div",{className:"mft"},
-isE?h("button",{className:"bs",style:{marginRight:"auto",borderColor:"#ef444444",color:"#ef4444"},onClick:()=>{
-db.collection("classrooms").doc(crId).collection("assignments").doc(existing.id).delete();ov_.remove()}},"🗑️ Delete"):null,
-h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
-h("button",{className:"bp",onClick:()=>{if(!f.title.trim())return;
-const ac=db.collection("classrooms").doc(crId).collection("assignments");
-const data={title:f.title,description:f.description,dueDate:f.dueDate,points:f.points,priority:f.priority,subject:f.subject||"other"};
-if(isE){ac.doc(existing.id).update(data)}else{ac.add({...data,studentStatus:{},createdAt:firebase.firestore.FieldValue.serverTimestamp()})}
-ov_.remove()}},(isE?"Save":"Add")+" Assignment")));
-const ov_=showMod(m);setTimeout(()=>ti.focus(),100)}
-
-function classroomEventMod(existing,crId){
-const isE=!!existing;
-const f=existing?{...existing}:{title:"",description:"",dueDate:td(),eventTime:"",isEvent:true};
-const bd=h("div",{className:"mbd"});
-const ti=h("input",{type:"text",className:"fi",value:f.title,placeholder:"Event name (e.g. Field Trip, Parent-Teacher Conference)",onChange:e=>{f.title=e.target.value}});
-const desc=h("textarea",{className:"fi",value:f.description||"",placeholder:"Details or location...",rows:3,style:{resize:"vertical"},onChange:e=>{f.description=e.target.value}});
-const dateInp=h("input",{type:"date",className:"fi",value:f.dueDate,onChange:e=>{f.dueDate=e.target.value}});
-const timeInp=h("input",{type:"time",className:"fi",value:f.eventTime||"",onChange:e=>{f.eventTime=e.target.value}});
-bd.append(
-h("div",{className:"fg"},h("label",{},"Event Name"),ti),
-h("div",{className:"fg"},h("label",{},"Description / Location"),desc),
-h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Date"),dateInp),h("div",{className:"fg"},h("label",{},"Time (optional)"),timeInp)));
-const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
-h("div",{className:"mhd"},h("h3",{style:{margin:0}},isE?"✏️ Edit Event":"🗓️ Add School Event"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
-h("div",{className:"mft"},
-isE?h("button",{className:"bs",style:{marginRight:"auto",borderColor:"#ef444444",color:"#ef4444"},onClick:()=>{
-db.collection("classrooms").doc(crId).collection("assignments").doc(existing.id).delete();ov_.remove()}},"🗑️ Delete"):null,
-h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
-h("button",{className:"bp",style:{background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>{if(!f.title.trim())return;
-const ac=db.collection("classrooms").doc(crId).collection("assignments");
-const data={title:f.title,description:f.description,dueDate:f.dueDate,eventTime:f.eventTime||"",points:0,priority:"Medium",isEvent:true,studentStatus:{}};
-if(isE){ac.doc(existing.id).update(data)}else{ac.add({...data,createdAt:firebase.firestore.FieldValue.serverTimestamp()})}
-ov_.remove()}},(isE?"Save":"Add")+" Event")));
-const ov_=showMod(m);setTimeout(()=>ti.focus(),100)}
-
-// ── Classroom View ──
-function rClassroom(){const w=h("div");
-if(!S.classrooms.length){
-// No classrooms - show setup
-w.append(h("div",{style:{textAlign:"center",padding:"60px 20px"}},
-h("div",{style:{fontSize:"64px",marginBottom:"16px"}},"🏫"),
-h("div",{style:{fontSize:"24px",fontWeight:700,marginBottom:"8px"}},"No Classrooms Yet"),
-h("div",{style:{fontSize:"14px",color:"var(--mut)",marginBottom:"24px",maxWidth:"400px",margin:"0 auto 24px",lineHeight:"1.6"}},"Create a classroom as a teacher, or join one with a code from your teacher."),
-h("div",{style:{display:"flex",gap:"10px",justifyContent:"center",flexWrap:"wrap"}},
-h("button",{className:"bp",style:{padding:"12px 24px"},onClick:createClassroomMod},"🏫 Create Classroom"),
-h("button",{className:"bs",style:{padding:"12px 24px"},onClick:joinClassroomMod},"🔗 Join Classroom"))));
-return w}
-// Classroom dropdown
-const crSel=h("select",{className:"ss",style:{fontSize:"14px",fontWeight:700,padding:"8px 12px",marginBottom:"16px",maxWidth:"300px"},onChange:e=>{
-S.activeClassroom=e.target.value;loadClassroomTasks(e.target.value);render()}});
-S.classrooms.forEach(cr=>{const o=h("option",{value:cr.id},(cr.teacherUid===currentUser?.uid?"📚 ":"📖 ")+cr.name);
-if(cr.id===S.activeClassroom)o.selected=true;crSel.append(o)});
-crSel.append(h("option",{value:"__create__"},"➕ Create Classroom..."));
-crSel.append(h("option",{value:"__join__"},"🔗 Join Classroom..."));
-const selWrap=h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px",flexWrap:"wrap"}});
-selWrap.append(crSel);
-w.append(selWrap);
-// Handle special dropdown values
-if(S.activeClassroom==="__create__"){S.activeClassroom=S.classrooms[0]?.id;createClassroomMod();return w}
-if(S.activeClassroom==="__join__"){S.activeClassroom=S.classrooms[0]?.id;joinClassroomMod();return w}
-const cr=S.classrooms.find(c=>c.id===S.activeClassroom);
-if(!cr){w.append(h("div",{style:{color:"var(--mut)"}},"Select a classroom"));return w}
-const isTeacher=cr.teacherUid===currentUser?.uid;
-console.log("Classroom debug — teacherUid:",cr.teacherUid,"currentUid:",currentUser?.uid,"isTeacher:",isTeacher);
-const students=cr.students||[];
-// Header with info
-const info=h("div",{className:"dc",style:{marginBottom:"16px"}});
-const infoRow=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"10px"}});
-infoRow.append(h("div",{},
-h("div",{style:{fontSize:"18px",fontWeight:700}},cr.name),
-h("div",{style:{fontSize:"12px",color:"var(--mut)",marginTop:"2px"}},"Teacher: "+cr.teacherName+" · "+students.length+" student"+(students.length!==1?"s":""))));
-if(isTeacher){
-infoRow.append(h("div",{style:{display:"flex",gap:"6px",flexWrap:"wrap"}},
-h("button",{className:"bp",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>classroomAssignMod(null,cr.id)},"📝 Add Assignment"),
-h("button",{className:"bp",style:{fontSize:"12px",padding:"6px 14px",background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>classroomEventMod(null,cr.id)},"🗓️ Add Event"),
-h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>{navigator.clipboard?.writeText(cr.classCode);alert("Classroom code copied: "+cr.classCode)}},"📋 Code: "+cr.classCode),
-h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px",borderColor:"#ef444444",color:"#ef4444"},onClick:async()=>{if(!confirm("Remove classroom '"+cr.name+"'? All assignments will be deleted. Students will keep any synced tasks in their family app."))return;
-// Delete all assignments first
-const aSnap=await db.collection("classrooms").doc(cr.id).collection("assignments").get();
-const batch=db.batch();aSnap.docs.forEach(d=>batch.delete(d.ref));await batch.commit();
-// Delete the classroom code
-if(cr.classCode){try{await db.collection("classroomCodes").doc(cr.classCode).delete()}catch(e){}}
-// Delete the classroom
-await db.collection("classrooms").doc(cr.id).delete();
-S.classrooms=S.classrooms.filter(c=>c.id!==cr.id);S.activeClassroom=S.classrooms[0]?.id||null;S.classroomTasks=[];render()
-}},"🗑️ Remove Classroom")))}
-if(!isTeacher){
-infoRow.append(h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px",borderColor:"#ef444444",color:"#ef4444"},onClick:async()=>{if(!confirm("Leave classroom '"+cr.name+"'? Synced assignments will stay in your School view."))return;
-const updStudents=(cr.students||[]).filter(s=>s.uid!==currentUser.uid);
-const updUids=(cr.studentUids||[]).filter(u=>u!==currentUser.uid);
-await db.collection("classrooms").doc(cr.id).update({students:updStudents,studentUids:updUids});
-S.classrooms=S.classrooms.filter(c=>c.id!==cr.id);S.activeClassroom=S.classrooms[0]?.id||null;S.classroomTasks=[];render()
-}},"Leave Classroom"))}
-info.append(infoRow);w.append(info);
-// Student roster (teacher view)
-if(isTeacher&&students.length){
-const roster=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"👩‍🎓 Students"));
-const rg=h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}});
-students.forEach(st=>{rg.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",padding:"8px 12px",background:"var(--ibg)",borderRadius:"10px",border:"1px solid var(--ib)"}},
-h("span",{style:{width:"28px",height:"28px",borderRadius:"50%",background:st.color||"#3b82f6",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"12px",fontWeight:700,color:"#fff"}},st.name?.charAt(0)||"?"),
-h("span",{style:{fontSize:"13px",fontWeight:600,flex:1}},st.name),
-h("button",{className:"dx",style:{fontSize:"10px",opacity:.7},onClick:()=>{if(!confirm("Remove "+st.name+" from this classroom?"))return;
-const updStudents=students.filter(s=>s.uid!==st.uid);
-const updUids=(cr.studentUids||[]).filter(u=>u!==st.uid);
-db.collection("classrooms").doc(cr.id).update({students:updStudents,studentUids:updUids})}},
-"✕")))});
-roster.append(rg);w.append(roster)}
-if(!isTeacher&&students.length===0){
-w.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"Waiting for teacher to set up assignments..."))}
-// Assignments with student status
-const allItems=S.classroomTasks.sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
-const assignments=allItems.filter(a=>!a.isEvent);
-const classEvents=allItems.filter(a=>a.isEvent);
-if(isTeacher){
-// === TEACHER: ASSIGNMENTS SECTION ===
-const ac=h("div",{className:"dc",style:{marginBottom:"16px"}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
-h("h3",{className:"dct",style:{marginBottom:0}},"📝 Assignments ("+assignments.length+")"),
-h("button",{className:"bp",style:{fontSize:"11px",padding:"4px 12px"},onClick:()=>classroomAssignMod(null,cr.id)},"+ Add")));
-if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments yet. Click '+ Add' to create one."))}
-assignments.forEach(a=>{
-const card=h("div",{style:{background:"var(--ibg)",border:"1px solid var(--ib)",borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
-const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>classroomAssignMod(a,cr.id)});
-const subj=SUBJECT_MAP[a.subject]||SUBJECT_MAP.other;
-hdr.append(h("div",{},
-h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
-h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:subj.color+"22",color:subj.color,border:"1px solid "+subj.color+"33",fontWeight:600}},subj.icon+" "+subj.label),
-h("span",{style:{fontWeight:700,fontSize:"15px"}},a.title)),
-h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",alignItems:"center",gap:"8px"}},
-a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
-a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
-h("span",{style:{color:PC[a.priority]||"#64748b"}},a.priority))));
-hdr.append(h("button",{className:"ib",onClick:e=>{e.stopPropagation();classroomAssignMod(a,cr.id)}},"✏️"));
-card.append(hdr);
-if(a.description){card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},a.description))}
-const statuses=a.studentStatus||{};
-const completed=Object.values(statuses).filter(s=>s.status==="Complete").length;
-card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},"Completed: "+completed+"/"+students.length));
-const sGrid=h("div",{style:{display:"flex",gap:"4px",flexWrap:"wrap"}});
-students.forEach(st=>{const stStat=statuses[st.uid];const isDone=stStat?.status==="Complete";const isIP=stStat?.status==="In Progress";
-sGrid.append(h("div",{style:{display:"flex",alignItems:"center",gap:"4px",padding:"3px 8px",borderRadius:"8px",fontSize:"11px",fontWeight:500,background:isDone?"#22c55e18":isIP?"#f59e0b18":"var(--card)",border:"1px solid "+(isDone?"#22c55e44":isIP?"#f59e0b44":"var(--ib)"),color:isDone?"#22c55e":isIP?"#f59e0b":"var(--mut)"}},
-h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:st.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},st.name?.charAt(0)),
-st.name?.split(" ")[0],isDone?" ✓":isIP?" ⏳":""))});
-card.append(sGrid);ac.append(card)});
-w.append(ac);
-// === TEACHER: EVENTS SECTION ===
-const ec=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
-h("h3",{className:"dct",style:{marginBottom:0,color:"#a855f7"}},"🗓️ School Events ("+classEvents.length+")"),
-h("button",{className:"bp",style:{fontSize:"11px",padding:"4px 12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>classroomEventMod(null,cr.id)},"+ Add")));
-if(!classEvents.length){ec.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No events yet. Click '+ Add' to create one."))}
-classEvents.forEach(ev=>{
-ec.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px 14px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px",cursor:"pointer"},onClick:()=>classroomEventMod(ev,cr.id)},
-h("div",{style:{fontSize:"20px",flexShrink:0}},"🗓️"),
-h("div",{style:{flex:1}},
-h("div",{style:{fontWeight:700,fontSize:"14px"}},ev.title),
-h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
-ev.dueDate?h("span",{},fd(ev.dueDate,{month:"short",day:"numeric"})):null,
-ev.eventTime?h("span",{},"🕐 "+ev.eventTime):null,
-ev.description?h("span",{},ev.description.substring(0,60)+(ev.description.length>60?"...":"")):null)),
-h("button",{className:"ib",onClick:e=>{e.stopPropagation();classroomEventMod(ev,cr.id)}},"✏️")))});
-w.append(ec)
-}else{
-// === STUDENT: ASSIGNMENTS SECTION ===
-const ac=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"📝 My Assignments in "+cr.name));
-if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments from this class yet."))}
-assignments.forEach(a=>{
-const myStatus=a.studentStatus?.[currentUser?.uid];
-const isDone=myStatus?.status==="Complete";
-ac.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:isDone?"#22c55e08":"var(--ibg)",border:"1px solid "+(isDone?"#22c55e33":"var(--ib)"),borderLeft:"4px solid "+(PC[a.priority]||"#64748b"),borderRadius:"10px",marginBottom:"6px"}},
-h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",border:"2px solid "+(isDone?"#22c55e":"var(--ib)"),background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",color:"#fff",cursor:"pointer",flexShrink:0},onClick:()=>{
-const newStatus=isDone?"Not Started":"Complete";
-db.collection("classrooms").doc(cr.id).collection("assignments").doc(a.id).update({
-["studentStatus."+currentUser.uid]:{name:getMe()?.name||"",status:newStatus,completedAt:newStatus==="Complete"?new Date().toISOString():null}})}},isDone?"✓":""),
-h("div",{style:{flex:1}},
-h("div",{style:{fontWeight:600,fontSize:"14px",textDecoration:isDone?"line-through":"none",color:isDone?"var(--mut)":"var(--txt)"}},a.title),
-h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
-a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
-a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points):null,
-a.description?h("span",{},a.description.substring(0,50)+(a.description.length>50?"...":"")):null)),
-h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:(PC[a.priority]||"#64748b")+"22",color:PC[a.priority]||"#64748b",fontWeight:600}},a.priority)))});
-w.append(ac);
-// === STUDENT: EVENTS SECTION ===
-if(classEvents.length){
-const evc=h("div",{className:"dc"},h("h3",{className:"dct",style:{color:"#a855f7"}},"🗓️ School Events in "+cr.name));
-classEvents.forEach(ev=>{
-evc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px"}},
-h("div",{style:{fontSize:"20px",flexShrink:0}},"🗓️"),
-h("div",{style:{flex:1}},
-h("div",{style:{fontWeight:600,fontSize:"14px",color:"var(--txt)"}},ev.title),
-h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
-ev.dueDate?h("span",{},fd(ev.dueDate,{month:"short",day:"numeric"})):null,
-ev.eventTime?h("span",{},"🕐 "+ev.eventTime):null,
-ev.description?h("span",{},ev.description.substring(0,60)+(ev.description.length>60?"...":"")):null)),
-h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",fontWeight:600}},"Event")))});
-w.append(evc)}
-}
-return w}
+showScreen("app");updateNotifBtn()}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";let statusEl;
 // Build custody section separately
