@@ -274,7 +274,7 @@ const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",la
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],classrooms:[],classroomTasks:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",activeClassroom:null};
+let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],classrooms:[],classroomTasks:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",activeClassroom:null,schoolClassFilter:"all"};
 let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null,classroomUnsubs=[];
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
@@ -724,7 +724,10 @@ if(doneTasks.length>0){w.append(h("div",{style:{fontSize:"14px",fontWeight:600,c
 // Empty state
 if(totalToday===0){w.append(h("div",{style:{textAlign:"center",padding:"40px 20px"}},h("div",{style:{fontSize:"64px",marginBottom:"12px"}},"🎉"),h("div",{style:{fontSize:"20px",fontWeight:700}},"No tasks today!"),h("div",{style:{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}},"Enjoy your free time")))}
 return w}
-function rSchool(){const tdy=td();let fm=S.sFlt||"all",fs=S.sSt||"all";const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent);const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent);const fil=st.filter(t=>fm==="all"||t.owner===fm).filter(t=>fs==="all"||t.status===fs).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
+function rSchool(){const tdy=td();let fm=S.sFlt||"all",fs=S.sSt||"all";const cf=S.schoolClassFilter||"all";
+const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent&&(cf==="all"||t.classroomId===cf||(!t.classroomId&&cf==="all")));
+const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent);
+const fil=st.filter(t=>fm==="all"||t.owner===fm).filter(t=>fs==="all"||t.status===fs).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
 const filEv=ev.filter(t=>fm==="all"||t.owner===fm).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
 const tot=st.length,dn=st.filter(t=>t.status==="Complete").length,ovd=st.filter(t=>t.status!=="Complete"&&t.dueDate<tdy).length,upc=st.filter(t=>t.status!=="Complete"&&t.dueDate>=tdy).length;
 const w=h("div");
@@ -744,18 +747,20 @@ btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSi
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)",minWidth:"120px"},onClick:()=>{eventMod(null)}},"+ Add Event"));
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#22c55e,#16a34a)",minWidth:"120px"},onClick:joinClassroomMod},"🏫 Join Classroom"));
 w.append(btnRow);
-// Classroom dropdown
+// Classroom dropdown - filters School view by classroom
 const allMyClassrooms=S.classrooms||[];
 if(allMyClassrooms.length){
 const crRow=h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px",flexWrap:"wrap"}});
-crRow.append(h("span",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}},"🏫 My Classrooms:"));
+crRow.append(h("span",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}},"🏫 Classroom:"));
 const crSel=h("select",{className:"ss",style:{fontSize:"12px",fontWeight:600,padding:"6px 10px",minWidth:"180px"},onChange:e=>{
-if(e.target.value==="__join__"){e.target.value="";joinClassroomMod();return}
-if(e.target.value){S.activeClassroom=e.target.value;S.view="classroom";render()}}});
-crSel.append(h("option",{value:""},allMyClassrooms.length+" classroom"+(allMyClassrooms.length!==1?"s":"")));
+if(e.target.value==="__join__"){e.target.value=S.schoolClassFilter||"all";joinClassroomMod();return}
+S.schoolClassFilter=e.target.value;render()}});
+crSel.append(h("option",{value:"all"},"All Classes"));
 allMyClassrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
-crSel.append(h("option",{value:cr.id},(isT?"📚 ":"📖 ")+cr.name))});
-crSel.append(h("option",{value:"__join__"},"+ Join Another..."));
+const o=h("option",{value:cr.id},(isT?"📚 ":"📖 ")+cr.name);
+if(cr.id===(S.schoolClassFilter||"all"))o.selected=true;
+crSel.append(o)});
+crSel.append(h("option",{value:"__join__"},"+ Join Classroom..."));
 crRow.append(crSel);
 w.append(crRow)}
 // === ASSIGNMENTS SECTION ===
