@@ -1518,10 +1518,10 @@ for(const cr of S.classrooms){
 // Fetch assignments from classroom
 let snap;
 try{snap=await db.collection("classrooms").doc(cr.id).collection("assignments").get()}catch(e){console.log("Sync fetch error for "+cr.name+":",e);continue}
-if(!snap||!snap.docs.length)continue;
+const crAssignIds=new Set(snap.docs.map(d=>d.id));
+// Create or update synced tasks
 for(const adoc of snap.docs){
 const a=adoc.data();
-// Check if already synced to family
 const existing=S.tasks.find(t=>t.classroomTaskId===adoc.id&&t.classroomId===cr.id);
 if(!existing){
 try{await db.collection("households").doc(householdId).collection("tasks").add({
@@ -1532,7 +1532,12 @@ classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:
 });console.log("✅ Synced: "+a.title+" | owner: "+me.name+" | category: School & Assignments | dueDate: "+a.dueDate)}catch(e){console.error("Sync write error:",e)}
 }else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
 try{await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
-title:a.title,description:a.description||"",dueDate:a.dueDate||""})}catch(e){console.error("Sync update error:",e)}}}}
+title:a.title,description:a.description||"",dueDate:a.dueDate||""})}catch(e){console.error("Sync update error:",e)}}}
+// Delete sync: remove family tasks whose classroom assignment no longer exists
+const orphanedTasks=S.tasks.filter(t=>t.classroomId===cr.id&&t.classroomTaskId&&!crAssignIds.has(t.classroomTaskId));
+for(const ot of orphanedTasks){
+try{await db.collection("households").doc(householdId).collection("tasks").doc(ot.id).delete();
+console.log("🗑️ Removed synced task: "+ot.title+" (assignment deleted by teacher)")}catch(e){console.error("Sync delete error:",e)}}}
 }catch(e){console.error("Classroom sync error:",e)}
 _syncing=false}
 async function syncStatusToClassroom(task){
