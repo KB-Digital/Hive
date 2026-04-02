@@ -442,7 +442,7 @@ function rr(){bd.innerHTML="";bd.append(h("div",{className:"fg"},h("label",{},"T
 h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Priority"),ms("priority",PRIORITIES)),h("div",{className:"fg"},h("label",{},"Status"),ms("status",STATUSES))),
 h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Urgency"),ms("urgency",URGENCIES)),h("div",{className:"fg"},h("label",{},"Importance"),ms("importance",IMPORTANCES))),
 h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Category"),ms("category",CATEGORIES)),h("div",{className:"fg"},h("label",{},"Room"),ms("room",ROOMS))),
-h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Owner"),ms("owner",S.members.map(m=>m.name))),h("div",{className:"fg"},h("label",{},"Points ⭐"),pt)),
+h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Owner"),ms("owner",["Everyone",...S.members.map(m=>m.name)])),h("div",{className:"fg"},h("label",{},"Points ⭐"),pt)),
 h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Due Date"),da,h("div",{style:{display:"flex",gap:"4px",marginTop:"6px",flexWrap:"wrap"}},
 h("button",{className:"bs",style:{padding:"2px 8px",fontSize:"10px"},onClick:()=>{f.dueDate=td();da.value=f.dueDate}},"Today"),
 h("button",{className:"bs",style:{padding:"2px 8px",fontSize:"10px"},onClick:()=>{f.dueDate=new Date(Date.now()+864e5).toISOString().split("T")[0];da.value=f.dueDate}},"Tomorrow"),
