@@ -304,8 +304,8 @@ const gm=n=>S.members.find(m=>m.name===n);
 const AVATARS=["🧑","👩","👨","👧","👦","🧒","👶","🐶","🐱","🦊","🐻","🐼","🦁","🐸","🐵","🦄","🐝","🐞","🦋","🐢","🤖","👽","👻","🧙","🦸","🧜","🎅","👸"];
 function avEl(member,size){const sz=size||32;const fs=Math.round(sz*0.44);if(!member)return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:fs+"px",fontWeight:700,color:"#fff",flexShrink:0}},"?");if(member.photo){return h("img",{src:member.photo,style:{width:sz+"px",height:sz+"px",borderRadius:"50%",objectFit:"cover",flexShrink:0}})}if(member.avatar){return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:member.color||"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:Math.round(sz*0.55)+"px",flexShrink:0}},member.avatar)}return h("div",{style:{width:sz+"px",height:sz+"px",borderRadius:"50%",background:member.color||"#64748b",display:"flex",alignItems:"center",justifyContent:"center",fontSize:fs+"px",fontWeight:700,color:"#fff",flexShrink:0}},member.name.charAt(0).toUpperCase())}
 const gi=()=>Date.now()+Math.random();
-function isParent(){const me=getMe();return me?me.role==="parent":true}
-function isTeacher(){const me=getMe();return me?me.role==="teacher":false}
+function isParent(){const me=getMe();return me?(me.role==="parent"||me.role==="parent-teacher"):true}
+function isTeacher(){const me=getMe();return me?(me.role==="teacher"||me.role==="parent-teacher"):false}
 function getMyRole(){const me=getMe();return me?.role||"parent"}
 // Device member override — lets a child use a parent's device as themselves
 let deviceMemberName=localStorage.getItem("hive_device_member")||"";
@@ -527,7 +527,7 @@ list.forEach((mb,mi)=>{
 if(!mb.role)mb.role="parent";
 const avBtn=h("div",{style:{cursor:"pointer",position:"relative"},onClick:()=>{showAvatarPicker(mb,mi)}});avBtn.append(avEl(mb,44));
 const n=h("input",{type:"text",className:"fi",value:mb.name,style:{flex:"1",fontSize:"14px",fontWeight:600,padding:"6px 10px"},onInput:e=>mb.name=e.target.value,onFocus:e=>e.target.select()});
-const ROLES=["parent","child","teacher"];const ROLE_LABELS={parent:"👨 Parent",child:"👦 Child",teacher:"🍎 Teacher"};const ROLE_COLORS={parent:"#3b82f6",child:"#f59e0b",teacher:"#22c55e"};
+const ROLES=["parent","child","teacher","parent-teacher"];const ROLE_LABELS={parent:"👨 Parent",child:"👦 Child",teacher:"🍎 Teacher","parent-teacher":"👨‍🏫 Parent + Teacher"};const ROLE_COLORS={parent:"#3b82f6",child:"#f59e0b",teacher:"#22c55e","parent-teacher":"#8b5cf6"};
 const roleBtn=h("button",{style:{padding:"3px 10px",borderRadius:"12px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid "+(ROLE_COLORS[mb.role]||"#3b82f6")+"44",background:(ROLE_COLORS[mb.role]||"#3b82f6")+"18",color:ROLE_COLORS[mb.role]||"#3b82f6",whiteSpace:"nowrap"},onClick:()=>{const ri=ROLES.indexOf(mb.role);mb.role=ROLES[(ri+1)%ROLES.length];rr()}},ROLE_LABELS[mb.role]||"👨 Parent");
 const cs=h("div",{style:{display:"flex",gap:"3px",flexShrink:0}});MC.slice(0,6).forEach(c=>cs.append(h("button",{style:{width:"16px",height:"16px",borderRadius:"50%",background:c,border:mb.color===c?"2px solid #fff":"2px solid transparent",cursor:"pointer",padding:0},onClick:()=>{mb.color=c;rr()}})));
 bd.append(h("div",{className:"mr",style:{alignItems:"center",flexWrap:"wrap",gap:"6px"}},avBtn,h("div",{style:{flex:1,minWidth:"100px",display:"flex",flexDirection:"column",gap:"4px"}},n,roleBtn),cs,h("button",{className:"ib",style:{color:"#ef4444",fontSize:"12px"},onClick:()=>{list=list.filter(m=>m.id!==mb.id);rr()}},"✕")))})}
@@ -747,7 +747,7 @@ const ss=h("select",{style:{background:"#1e293b",border:"1px solid #334155",bord
 const btnRow=h("div",{style:{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}});
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",minWidth:"120px"},onClick:()=>{taskMod({title:"",priority:"Medium",urgency:"Urgent",importance:"Important",status:"Not Started",category:"School & Assignments",owner:S.members.find(m=>m.name==="Kids")?.name||S.members[0]?.name||"Me",dueDate:tdy,description:"",points:20,completedBy:"",recurring:"none"})}},"+ Add Assignment"));
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)",minWidth:"120px"},onClick:()=>{eventMod(null)}},"+ Add Event"));
-btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#22c55e,#16a34a)",minWidth:"120px"},onClick:joinClassroomMod},"🏫 Join Classroom"));
+if(isParent()){btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#22c55e,#16a34a)",minWidth:"120px"},onClick:joinClassroomMod},"🏫 Join Classroom"))}
 w.append(btnRow);
 // Classroom dropdown - filters School view by classroom
 const allMyClassrooms=S.classrooms||[];
@@ -762,7 +762,7 @@ allMyClassrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
 const o=h("option",{value:cr.id},(isT?"📚 ":"📖 ")+cr.name);
 if(cr.id===(S.schoolClassFilter||"all"))o.selected=true;
 crSel.append(o)});
-crSel.append(h("option",{value:"__join__"},"+ Join Classroom..."));
+if(isParent()){crSel.append(h("option",{value:"__join__"},"+ Join Classroom..."))}
 crRow.append(crSel);
 w.append(crRow)}
 // === ASSIGNMENTS SECTION ===
@@ -850,7 +850,7 @@ h("div",{style:{fontSize:"11px",color:"var(--mut)"}},threadMsgs.length+" message
 threadMsgs.length&&isParent()?h("button",{style:{padding:"3px 10px",borderRadius:"6px",fontSize:"10px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:"1px solid #ef444444",background:"transparent",color:"#ef4444"},onClick:()=>{if(!confirm("Clear all "+threadMsgs.length+" messages in this chat? This cannot be undone."))return;const batch=db.batch();threadMsgs.forEach(m=>{batch.delete(db.collection("households").doc(householdId).collection("messages").doc(m.id))});batch.commit().catch(e=>console.error("Clear failed:",e))}},"🗑️ Clear"):null)));const msgScroll=h("div",{style:{flex:1,overflowY:"auto",padding:"12px 16px",display:"flex",flexDirection:"column",gap:"8px"}});
 const renderText=(txt)=>{const parts=[];let last=0;const regex=/@(\w+)/g;let match;while((match=regex.exec(txt))!==null){if(match.index>last)parts.push(document.createTextNode(txt.slice(last,match.index)));const mn=match[1];const mm=S.members.find(x=>x.name.toLowerCase()===mn.toLowerCase());parts.push(h("span",{style:{background:(mm?.color||"#3b82f6")+"33",color:mm?.color||"#60a5fa",fontWeight:600,padding:"0 3px",borderRadius:"3px"}},"@"+mn));last=regex.lastIndex}if(last<txt.length)parts.push(document.createTextNode(txt.slice(last)));const c=h("span",{});parts.forEach(p=>c.append(p));return c};
 if(threadMsgs.length){threadMsgs.forEach(m=>{const isMe=m.senderUid===currentUser?.uid;const taggedTask=m.taggedTaskId?S.tasks.find(t=>t.id===m.taggedTaskId):null;
-const roleBadge=m.senderRole==="teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#22c55e22",color:"#22c55e",border:"1px solid #22c55e44",fontWeight:600,marginLeft:"4px"}},"Teacher"):m.senderRole==="child"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600,marginLeft:"4px"}},"Student"):null;
+const roleBadge=m.senderRole==="teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#22c55e22",color:"#22c55e",border:"1px solid #22c55e44",fontWeight:600,marginLeft:"4px"}},"Teacher"):m.senderRole==="parent-teacher"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#8b5cf622",color:"#8b5cf6",border:"1px solid #8b5cf644",fontWeight:600,marginLeft:"4px"}},"Parent+Teacher"):m.senderRole==="child"?h("span",{style:{fontSize:"9px",padding:"1px 5px",borderRadius:"6px",background:"#f59e0b22",color:"#f59e0b",border:"1px solid #f59e0b44",fontWeight:600,marginLeft:"4px"}},"Student"):null;
 const bubble=h("div",{style:{background:isMe?"#1e3a5f":"var(--ibg)",border:"1px solid "+(m.urgent?"#ef444466":isMe?"#3b82f644":"var(--ib)"),borderRadius:isMe?"12px 12px 2px 12px":"12px 12px 12px 2px",padding:"8px 12px",fontSize:"13px",lineHeight:"1.4",color:"var(--txt)",wordBreak:"break-word"}});
 bubble.append(renderText(m.text));
 msgScroll.append(h("div",{style:{display:"flex",flexDirection:"column",alignItems:isMe?"flex-end":"flex-start",maxWidth:"80%",alignSelf:isMe?"flex-end":"flex-start"}},
@@ -1219,7 +1219,10 @@ if(isE){mc.doc(existing.id).update(data)}else{mc.add({...data,timestamp:firebase
 ov_.remove()}},(isE?"Save":"Add")+" Meal")));
 const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
 
-function render(){const myRole=getMyRole();const teacherMode=myRole==="teacher";const visibleViews=teacherMode?VIEWS.filter(v=>v.id==="school"||v.id==="messages"):VIEWS;
+function render(){const myRole=getMyRole();const teacherMode=myRole==="teacher";
+const isClassroomTeacher=S.classrooms.some(c=>c.teacherUid===currentUser?.uid)||(myRole==="parent-teacher");
+let visibleViews=teacherMode?VIEWS.filter(v=>v.id==="school"||v.id==="messages"):VIEWS;
+if(!isClassroomTeacher){visibleViews=visibleViews.filter(v=>v.id!=="classroom")}
 if(teacherMode&&!visibleViews.find(v=>v.id===S.view)){S.view="school"}
 const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
 visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;nav.append(h("button",{className:"nav-item"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},h("span",{style:{fontSize:"16px",width:"20px",textAlign:"center"}},v.icon),v.label,unread?h("span",{style:{marginLeft:"auto",background:"#ef4444",color:"#fff",fontSize:"10px",fontWeight:700,padding:"1px 6px",borderRadius:"10px",minWidth:"18px",textAlign:"center"}},String(unread)):null))});const tabs=$("mobileTabs");tabs.innerHTML="";visibleViews.forEach(v=>{const unread=v.id==="messages"?totalUnread:0;tabs.append(h("button",{className:"mobile-tab"+(S.view===v.id?" active":""),onClick:()=>setView(v.id)},v.icon+" "+v.label+(unread?" ("+unread+")":"")))});$("memberCount").textContent=S.members.length;const av=$("memberAvatars");av.innerHTML="";S.members.slice(0,5).forEach(m=>av.append(avEl(m,24)));const v=visibleViews.find(x=>x.id===S.view)||visibleViews[0];$("viewTitle").textContent=v.icon+" "+v.label+" View";$("topDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
