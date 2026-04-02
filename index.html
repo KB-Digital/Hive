@@ -744,11 +744,20 @@ btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSi
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#a855f7,#7c3aed)",minWidth:"120px"},onClick:()=>{eventMod(null)}},"+ Add Event"));
 btnRow.append(h("button",{className:"add-btn",style:{flex:1,padding:"8px",fontSize:"12px",background:"linear-gradient(135deg,#22c55e,#16a34a)",minWidth:"120px"},onClick:joinClassroomMod},"🏫 Join Classroom"));
 w.append(btnRow);
-// Show linked classrooms
-const myClassrooms=S.classrooms.filter(c=>c.teacherUid!==currentUser?.uid);
-if(myClassrooms.length){const crInfo=h("div",{style:{display:"flex",gap:"6px",marginBottom:"16px",flexWrap:"wrap"}});
-myClassrooms.forEach(cr=>{crInfo.append(h("div",{style:{display:"flex",alignItems:"center",gap:"6px",padding:"4px 12px",borderRadius:"8px",background:"#22c55e11",border:"1px solid #22c55e33",fontSize:"11px",color:"#22c55e",fontWeight:600,cursor:"pointer"},onClick:()=>{S.activeClassroom=cr.id;S.view="classroom";render()}},"🏫 "+cr.name))});
-w.append(crInfo)}
+// Classroom dropdown
+const allMyClassrooms=S.classrooms||[];
+if(allMyClassrooms.length){
+const crRow=h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginBottom:"16px",flexWrap:"wrap"}});
+crRow.append(h("span",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px"}},"🏫 My Classrooms:"));
+const crSel=h("select",{className:"ss",style:{fontSize:"12px",fontWeight:600,padding:"6px 10px",minWidth:"180px"},onChange:e=>{
+if(e.target.value==="__join__"){e.target.value="";joinClassroomMod();return}
+if(e.target.value){S.activeClassroom=e.target.value;S.view="classroom";render()}}});
+crSel.append(h("option",{value:""},allMyClassrooms.length+" classroom"+(allMyClassrooms.length!==1?"s":"")));
+allMyClassrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
+crSel.append(h("option",{value:cr.id},(isT?"📚 ":"📖 ")+cr.name))});
+crSel.append(h("option",{value:"__join__"},"+ Join Another..."));
+crRow.append(crSel);
+w.append(crRow)}
 // === ASSIGNMENTS SECTION ===
 w.append(h("div",{style:{fontSize:"13px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{},"📝"),h("span",{},"Assignments"+(fil.length?" ("+fil.length+")":""))));
 if(fil.length){const cards=h("div",{style:{display:"flex",flexDirection:"column",gap:"8px"}});fil.forEach(t=>{const mc=gm(t.owner);const io=t.status!=="Complete"&&t.dueDate<tdy;const ids=!io&&t.status!=="Complete"&&t.dueDate<=new Date(Date.now()+2*864e5).toISOString().split("T")[0];
