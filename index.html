@@ -269,12 +269,12 @@ const ROOMS=["Any Room","Kitchen","Bathroom","Bedroom","Living Room","Dining Roo
 const PC={Critical:"#ef4444",High:"#f97316",Medium:"#3b82f6",Low:"#22c55e"};
 const SC={"Not Started":"#64748b","In Progress":"#3b82f6",Complete:"#22c55e",Blocked:"#ef4444"};
 const MC=["#3b82f6","#f97316","#22c55e","#a855f7","#ef4444","#eab308","#06b6d4","#ec4899","#14b8a6","#f43f5e"];
-const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
+const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general"};
-let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null;
+let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null};
+let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
 db.enablePersistence({synchronizeTabs:true}).catch(e=>{if(e.code==="failed-precondition")console.log("Persistence failed: multiple tabs open");else if(e.code==="unimplemented")console.log("Persistence not supported in this browser")});
@@ -471,6 +471,9 @@ const ov_=showMod(m)}
 const EVENT_TYPES=["Field Trip","Parent-Teacher Conference","Club Meeting","Sports / Practice","No School Day","School Dance","Assembly","Other"];
 const GEN_EVENT_CATS=[{id:"appointment",label:"Appointment",icon:"🏥",color:"#06b6d4",examples:"Doctor, dentist, therapy, haircut"},{id:"sports",label:"Sports",icon:"⚽",color:"#22c55e",examples:"Game, practice, tournament, tryout"},{id:"bills",label:"Bills & Payments",icon:"💰",color:"#ef4444",examples:"Rent, electric, insurance, subscription"},{id:"birthday",label:"Birthday / Celebration",icon:"🎂",color:"#ec4899",examples:"Birthday, anniversary, graduation"},{id:"travel",label:"Travel / Vacation",icon:"✈️",color:"#f97316",examples:"Flight, road trip, hotel check-in"},{id:"school",label:"School Event",icon:"📚",color:"#a855f7",examples:"Field trip, conference, no school"},{id:"other",label:"Other",icon:"📌",color:"#64748b",examples:"Anything else"}];
 const GEC_MAP=Object.fromEntries(GEN_EVENT_CATS.map(c=>[c.id,c]));
+const AISLES=[{id:"produce",label:"Produce",icon:"🥬",color:"#22c55e"},{id:"dairy",label:"Dairy & Eggs",icon:"🥛",color:"#60a5fa"},{id:"meat",label:"Meat & Seafood",icon:"🥩",color:"#ef4444"},{id:"bakery",label:"Bakery & Bread",icon:"🍞",color:"#f59e0b"},{id:"frozen",label:"Frozen",icon:"🧊",color:"#06b6d4"},{id:"pantry",label:"Pantry & Canned",icon:"🥫",color:"#f97316"},{id:"snacks",label:"Snacks & Drinks",icon:"🥤",color:"#a855f7"},{id:"household",label:"Household",icon:"🧹",color:"#64748b"},{id:"other",label:"Other",icon:"📦",color:"#94a3b8"}];
+const AISLE_MAP=Object.fromEntries(AISLES.map(a=>[a.id,a]));
+const MEAL_SLOTS=["Breakfast","Lunch","Dinner","Snack"];
 function eventMod(evt){if(evt&&evt.id){genEventMod(evt)}else{genEventMod({title:"",eventCategory:"school",dueDate:td(),description:"",owner:S.members.find(m=>m.name==="Kids")?.name||S.members[0]?.name||"Me",isEvent:true,isGeneralEvent:true,category:"Events",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",points:0,completedBy:"",recurring:"none",eventTime:"",eventLocation:""})}}
 function genEventMod(evt){const isE=!!evt&&!!evt.id;const f=evt?{...evt}:{title:"",eventCategory:"appointment",dueDate:td(),endDate:"",description:"",owner:S.members[0]?.name||"Me",isEvent:true,isGeneralEvent:true,category:"Events",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",points:0,completedBy:"",recurring:"none",eventTime:"",eventLocation:""};
 if(!f.eventCategory)f.eventCategory="other";if(!f.eventTime)f.eventTime="";if(!f.eventLocation)f.eventLocation="";if(!f.endDate)f.endDate="";if(!f.recurring)f.recurring="none";
@@ -939,6 +942,141 @@ const w=h("div",{},nav,memberFilter(S.wFlt,v=>{S.wFlt=v;render()}));
 const g=h("div",{className:"wg"});wd.forEach(day=>{const ds=day.toISOString().split("T")[0];const dt=filt.filter(t=>t.dueDate===ds).sort((a,b)=>PRIORITIES.indexOf(a.priority)-PRIORITIES.indexOf(b.priority));const it=ds===tdy;const col=h("div",{className:"wd"+(it?" today":"")},h("div",{className:"wdh"},h("span",{style:{fontWeight:600}},day.toLocaleDateString("en-US",{weekday:"short"})),h("span",{style:{fontSize:"18px",fontWeight:700,color:it?"#3b82f6":"#e2e8f0"}},String(day.getDate()))));const tasks=h("div",{className:"wt"});
 dt.forEach(t=>{const mc=gm(t.owner)?.color||"#64748b";tasks.append(h("div",{className:"wcard",style:{borderLeftColor:PC[t.priority]}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}},h("div",{style:{cursor:"pointer",flex:1},onClick:()=>cycleStat(t.id)},h("div",{style:{fontSize:"11px",fontWeight:600,lineHeight:"1.3"}},t.title),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",marginTop:"2px"}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:mc,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff",flexShrink:0}},t.owner.charAt(0).toUpperCase()),h("span",{style:{fontSize:"10px",color:SC[t.status]}},t.status))),h("button",{className:"dx",style:{marginTop:"-2px"},onClick:()=>delTask(t.id)},"✕"))))});
 if(!dt.length)tasks.append(h("div",{style:{fontSize:"11px",color:"#334155",textAlign:"center",padding:"8px"}},"—"));col.append(tasks);g.append(col)});w.append(g);return w}
+// ── Grocery View ──
+function rGrocery(){const w=h("div");
+const items=S.grocery.sort((a,b)=>{if(a.checked!==b.checked)return a.checked?1:-1;const ai=AISLES.findIndex(x=>x.id===a.aisle),bi=AISLES.findIndex(x=>x.id===b.aisle);return ai-bi});
+const unchecked=items.filter(i=>!i.checked),checked=items.filter(i=>i.checked);
+// Stats
+const sg=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap",marginBottom:"16px"}});
+[{l:"Total Items",v:items.length,c:"#e2e8f0"},{l:"To Buy",v:unchecked.length,c:"#f59e0b"},{l:"Got It",v:checked.length,c:"#22c55e"}].forEach(s=>sg.append(h("div",{style:{flex:1,minWidth:"80px",textAlign:"center",padding:"10px",background:"var(--ibg)",borderRadius:"10px",boxShadow:"inset 0 2px 4px rgba(0,0,0,.15)"}},h("div",{style:{fontSize:"24px",fontWeight:700,color:s.c}},String(s.v)),h("div",{style:{fontSize:"11px",color:"#64748b",textTransform:"uppercase",letterSpacing:".5px"}},s.l))));w.append(sg);
+// Quick add
+const addRow=h("div",{style:{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}});
+const nameInp=h("input",{type:"text",className:"fi",placeholder:"Add item...",style:{flex:1,minWidth:"150px"}});
+const aisleSel=h("select",{className:"ss",style:{minWidth:"120px"}});
+AISLES.forEach(a=>{aisleSel.append(h("option",{value:a.id},a.icon+" "+a.label))});
+const addBtn=h("button",{className:"bp",style:{padding:"8px 16px",boxShadow:"0 4px 6px rgba(59,130,246,.3),inset 0 1px 0 rgba(255,255,255,.2)"},onClick:()=>{const name=nameInp.value.trim();if(!name||!householdId)return;
+db.collection("households").doc(householdId).collection("grocery").add({name,aisle:aisleSel.value,checked:false,addedBy:getMe()?.name||"",timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+nameInp.value=""}},"+");
+nameInp.addEventListener("keydown",e=>{if(e.key==="Enter")addBtn.click()});
+addRow.append(nameInp,aisleSel,addBtn);w.append(addRow);
+// Clear checked button
+if(checked.length){w.append(h("div",{style:{display:"flex",justifyContent:"flex-end",marginBottom:"12px"}},h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px",borderColor:"#ef444444",color:"#ef4444"},onClick:()=>{if(!confirm("Remove "+checked.length+" checked items?"))return;const batch=db.batch();checked.forEach(i=>{batch.delete(db.collection("households").doc(householdId).collection("grocery").doc(i.id))});batch.commit()}},"🗑️ Clear checked ("+checked.length+")")))}
+// Items grouped by aisle
+const byAisle={};items.forEach(i=>{if(!byAisle[i.aisle])byAisle[i.aisle]=[];byAisle[i.aisle].push(i)});
+AISLES.forEach(aisle=>{const aitems=byAisle[aisle.id];if(!aitems||!aitems.length)return;
+const sec=h("div",{style:{marginBottom:"16px"}});
+sec.append(h("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px"}},
+h("span",{style:{fontSize:"16px"}},aisle.icon),
+h("span",{style:{fontSize:"13px",fontWeight:700,color:aisle.color}},aisle.label),
+h("span",{style:{fontSize:"11px",color:"#64748b",background:"var(--ibg)",padding:"1px 8px",borderRadius:"10px"}},aitems.filter(i=>!i.checked).length+"/"+aitems.length)));
+aitems.forEach(item=>{
+sec.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 12px",background:item.checked?"#22c55e08":"var(--card)",border:"1px solid "+(item.checked?"#22c55e33":"var(--bdr)"),borderRadius:"10px",marginBottom:"4px",cursor:"pointer",transition:"all .15s"},onClick:()=>{db.collection("households").doc(householdId).collection("grocery").doc(item.id).update({checked:!item.checked})}},
+h("div",{style:{width:"24px",height:"24px",borderRadius:"6px",border:"2px solid "+(item.checked?"#22c55e":aisle.color+"66"),background:item.checked?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",color:"#fff",flexShrink:0,transition:"all .15s"}},item.checked?"✓":""),
+h("span",{style:{flex:1,fontSize:"14px",fontWeight:500,textDecoration:item.checked?"line-through":"none",color:item.checked?"var(--mut)":"var(--txt)"}},item.name),
+item.addedBy?h("span",{style:{fontSize:"10px",color:"#64748b"}},item.addedBy):null,
+h("button",{className:"dx",onClick:e=>{e.stopPropagation();db.collection("households").doc(householdId).collection("grocery").doc(item.id).delete()}},"✕")))});
+w.append(sec)});
+// Empty state
+if(!items.length){w.append(h("div",{style:{textAlign:"center",padding:"40px 20px"}},h("div",{style:{fontSize:"64px",marginBottom:"12px"}},"🛒"),h("div",{style:{fontSize:"20px",fontWeight:700}},"Grocery list is empty"),h("div",{style:{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}},"Add items above — everyone in the family can contribute")))}
+return w}
+
+// ── Meals View ──
+function rMeals(){
+if(!S.mealWk){const d=new Date();d.setDate(d.getDate()-d.getDay());S.mealWk=d.toISOString().split("T")[0]}
+const wd=Array.from({length:7},(_,i)=>{const d=new Date(S.mealWk+"T12:00:00");d.setDate(d.getDate()+i);return d.toISOString().split("T")[0]});
+const tdy=td();const w=h("div");
+// Week nav
+const nav=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"16px"}},
+h("button",{className:"nb",onClick:()=>{const d=new Date(S.mealWk);d.setDate(d.getDate()-7);S.mealWk=d.toISOString().split("T")[0];render()}},"◀"),
+h("h3",{style:{margin:0,fontSize:"16px"}},fd(S.mealWk,{month:"short",day:"numeric"})+" – "+fd(wd[6],{month:"short",day:"numeric",year:"numeric"})),
+h("button",{className:"nb",onClick:()=>{const d=new Date(S.mealWk);d.setDate(d.getDate()+7);S.mealWk=d.toISOString().split("T")[0];render()}},"▶"));
+w.append(nav);
+// Add to grocery button
+w.append(h("div",{style:{display:"flex",gap:"8px",marginBottom:"16px",flexWrap:"wrap"}},
+h("button",{className:"bp",style:{fontSize:"12px",padding:"8px 16px",boxShadow:"0 4px 6px rgba(59,130,246,.3),inset 0 1px 0 rgba(255,255,255,.2)"},onClick:()=>mealMod(null,tdy)},"+ Add Meal"),
+h("button",{className:"bs",style:{fontSize:"12px",padding:"8px 16px"},onClick:()=>{
+const weekMeals=S.meals.filter(m=>wd.includes(m.date));
+if(!weekMeals.length){alert("No meals planned this week to generate a list from.");return}
+let added=0;const batch=db.batch();
+weekMeals.forEach(meal=>{if(!meal.ingredients)return;
+meal.ingredients.split("\n").forEach(ing=>{const name=ing.trim();if(!name)return;
+const exists=S.grocery.find(g=>g.name.toLowerCase()===name.toLowerCase()&&!g.checked);
+if(!exists){const ref=db.collection("households").doc(householdId).collection("grocery").doc();
+batch.set(ref,{name,aisle:"other",checked:false,addedBy:"Meal Plan",timestamp:firebase.firestore.FieldValue.serverTimestamp()});added++}})});
+batch.commit().then(()=>{if(added)alert(added+" item"+(added!==1?"s":"")+" added to grocery list!");else alert("All ingredients are already on your grocery list.")})}},"🛒 Generate Grocery List")));
+// Weekly grid
+const grid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"6px"}});
+wd.forEach(date=>{const isToday=date===tdy;
+const dayMeals=S.meals.filter(m=>m.date===date);
+const dayCol=h("div",{style:{background:"var(--card)",border:"1px solid "+(isToday?"var(--blue)":"var(--bdr)"),borderRadius:"10px",minHeight:"200px"}});
+const dObj=new Date(date+"T12:00:00");
+dayCol.append(h("div",{style:{padding:"8px 10px",textAlign:"center",borderBottom:"1px solid var(--bdr)"}},
+h("div",{style:{fontSize:"12px",fontWeight:600,color:isToday?"#3b82f6":"var(--sub)"}},dObj.toLocaleDateString("en-US",{weekday:"short"})),
+h("div",{style:{fontSize:"18px",fontWeight:700,color:isToday?"#3b82f6":"var(--txt)"}},String(dObj.getDate()))));
+const body=h("div",{style:{padding:"6px"}});
+MEAL_SLOTS.forEach(slot=>{
+const slotMeals=dayMeals.filter(m=>m.slot===slot);
+if(!slotMeals.length)return;
+body.append(h("div",{style:{fontSize:"9px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:".5px",marginBottom:"2px",marginTop:"4px"}},slot));
+slotMeals.forEach(meal=>{const cook=gm(meal.cook);
+body.append(h("div",{style:{padding:"4px 6px",background:"var(--ibg)",borderRadius:"6px",marginBottom:"3px",cursor:"pointer",borderLeft:"3px solid "+(cook?.color||"#64748b")},onClick:()=>mealMod(meal,date)},
+h("div",{style:{fontSize:"11px",fontWeight:600,lineHeight:"1.3"}},meal.name),
+meal.cook?h("div",{style:{fontSize:"9px",color:"var(--mut)",display:"flex",alignItems:"center",gap:"3px",marginTop:"1px"}},h("span",{style:{width:"10px",height:"10px",borderRadius:"50%",background:cook?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"6px",color:"#fff",fontWeight:700}},meal.cook.charAt(0)),meal.cook):null))})});
+// Add button for this day
+body.append(h("button",{style:{width:"100%",padding:"4px",border:"1px dashed var(--ib)",borderRadius:"6px",background:"transparent",color:"var(--mut)",fontSize:"16px",cursor:"pointer",marginTop:"4px",fontFamily:"inherit"},onClick:()=>mealMod(null,date)},"+"));
+dayCol.append(body);grid.append(dayCol)});
+w.append(grid);
+// List view below grid
+const weekMeals=S.meals.filter(m=>wd.includes(m.date)).sort((a,b)=>a.date.localeCompare(b.date));
+if(weekMeals.length){
+w.append(h("div",{style:{marginTop:"20px"}}));
+const list=h("div",{className:"dc",style:{marginTop:"16px"}},h("h3",{className:"dct"},"📋 This Week's Meals"));
+weekMeals.forEach(meal=>{const cook=gm(meal.cook);const dObj2=new Date(meal.date+"T12:00:00");
+list.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"10px 12px",background:"#1e293b44",borderRadius:"10px",marginBottom:"6px",cursor:"pointer"},onClick:()=>mealMod(meal,meal.date)},
+h("div",{style:{textAlign:"center",minWidth:"44px"}},
+h("div",{style:{fontSize:"10px",color:"var(--mut)"}},dObj2.toLocaleDateString("en-US",{weekday:"short"})),
+h("div",{style:{fontSize:"16px",fontWeight:700}},String(dObj2.getDate()))),
+h("div",{style:{flex:1}},
+h("div",{style:{fontWeight:600,fontSize:"14px"}},meal.name),
+h("div",{style:{fontSize:"11px",color:"var(--mut)",display:"flex",alignItems:"center",gap:"8px",marginTop:"2px"}},
+h("span",{style:{background:"#3b82f622",color:"#60a5fa",padding:"1px 8px",borderRadius:"8px",fontSize:"10px",fontWeight:600}},meal.slot),
+cook?h("span",{style:{display:"flex",alignItems:"center",gap:"3px"}},h("span",{style:{width:"12px",height:"12px",borderRadius:"50%",background:cook?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",color:"#fff",fontWeight:700}},meal.cook.charAt(0)),meal.cook):null)),
+h("button",{className:"dx",onClick:e=>{e.stopPropagation();db.collection("households").doc(householdId).collection("meals").doc(meal.id).delete()}},"✕")))});
+w.append(list)}
+return w}
+
+// ── Meal Add/Edit Modal ──
+function mealMod(existing,date){
+const isE=!!existing;
+const f=existing?{...existing}:{name:"",slot:"Dinner",cook:"",notes:"",ingredients:"",date:date||td()};
+const bd=h("div",{className:"mbd"});
+const ni=h("input",{type:"text",className:"fi",value:f.name,placeholder:"What's for dinner?",onChange:e=>{f.name=e.target.value}});
+const slotSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.slot=e.target.value}});
+MEAL_SLOTS.forEach(s=>{const o=h("option",{value:s},s);if(s===f.slot)o.selected=true;slotSel.append(o)});
+const cookSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.cook=e.target.value}});
+cookSel.append(h("option",{value:""},"No one assigned"));
+S.members.filter(m=>m.role!=="teacher").forEach(m=>{const o=h("option",{value:m.name},m.name);if(m.name===f.cook)o.selected=true;cookSel.append(o)});
+const dateInp=h("input",{type:"date",className:"fi",value:f.date,onChange:e=>{f.date=e.target.value}});
+const notesInp=h("textarea",{className:"fi",value:f.notes||"",placeholder:"Recipe link, notes, or instructions...",rows:3,style:{resize:"vertical"},onChange:e=>{f.notes=e.target.value}});
+const ingInp=h("textarea",{className:"fi",value:f.ingredients||"",placeholder:"One ingredient per line\ne.g.:\nChicken breast\nRice\nBroccoli",rows:4,style:{resize:"vertical"},onChange:e=>{f.ingredients=e.target.value}});
+bd.append(
+h("div",{className:"fg"},h("label",{},"Meal Name"),ni),
+h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Meal"),slotSel),h("div",{className:"fg"},h("label",{},"Date"),dateInp)),
+h("div",{className:"fg"},h("label",{},"Who's Cooking"),cookSel),
+h("div",{className:"fg"},h("label",{},"Ingredients (for grocery list)"),ingInp),
+h("div",{className:"fg"},h("label",{},"Notes / Recipe Link"),notesInp));
+const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
+h("div",{className:"mhd"},h("h3",{style:{margin:0}},isE?"✏️ Edit Meal":"🍽️ Add Meal"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
+h("div",{className:"mft"},
+isE?h("button",{className:"bs",style:{marginRight:"auto",borderColor:"#ef444444",color:"#ef4444"},onClick:()=>{db.collection("households").doc(householdId).collection("meals").doc(existing.id).delete();ov_.remove()}},"🗑️ Delete"):null,
+h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
+h("button",{className:"bp",onClick:()=>{if(!f.name.trim())return;
+const mc=db.collection("households").doc(householdId).collection("meals");
+const data={name:f.name,slot:f.slot,cook:f.cook,date:f.date,notes:f.notes,ingredients:f.ingredients};
+if(isE){mc.doc(existing.id).update(data)}else{mc.add({...data,timestamp:firebase.firestore.FieldValue.serverTimestamp()})}
+ov_.remove()}},(isE?"Save":"Add")+" Meal")));
+const ov_=showMod(m);setTimeout(()=>ni.focus(),100)}
+
 function render(){const myRole=getMyRole();const teacherMode=myRole==="teacher";const visibleViews=teacherMode?VIEWS.filter(v=>v.id==="school"||v.id==="messages"):VIEWS;
 if(teacherMode&&!visibleViews.find(v=>v.id===S.view)){S.view="school"}
 const nav=$("sidebarNav");nav.innerHTML="";const meNav=getMe();const myN=meNav?.name||"";const myR=getMyRole();const totalUnread=S.messages.filter(m=>!m.readBy?.includes(currentUser?.uid)&&canSeeThread(m.thread,myN,myR)).length;
@@ -958,7 +1096,7 @@ if(overdueTasks.length>0&&!S._overdueDismissed){const byOwner={};overdueTasks.fo
 // Pending approvals banner (parents only)
 const pendingTasks=S.tasks.filter(t=>t.pendingApproval&&t.status==="Complete");
 if(pendingTasks.length>0&&isParent()){const pBanner=h("div",{style:{background:"linear-gradient(135deg,#1e3a5f,#1e40af)",border:"1px solid #3b82f6",borderRadius:"12px",padding:"14px 18px",marginBottom:"16px"}},h("div",{style:{fontWeight:700,fontSize:"14px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontSize:"20px"}},"✅"),""+pendingTasks.length+" Task"+(pendingTasks.length!==1?"s":"")+" Waiting for Approval"));pendingTasks.forEach(t=>{const mc=gm(t.owner);pBanner.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 12px",background:"#0f172a",borderRadius:"8px",marginBottom:"6px"}},avEl(mc||{name:t.owner,color:"#64748b"},28),h("div",{style:{flex:1}},h("div",{style:{fontWeight:600,fontSize:"13px"}},t.title),h("div",{style:{fontSize:"11px",color:"#64748b"}},t.owner+" · "+fd(t.dueDate,{month:"short",day:"numeric"})+(t.points?" · ⭐ "+t.points+" pts":""))),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"none",background:"#22c55e",color:"#fff",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>approveTask(t.id)},"✓ Approve"),h("button",{style:{padding:"5px 12px",borderRadius:"6px",border:"1px solid #ef444466",background:"transparent",color:"#ef4444",fontSize:"11px",fontWeight:600,cursor:"pointer",fontFamily:"inherit"},onClick:()=>rejectTask(t.id)},"✗ Reject")))});c.append(pBanner)}
-switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
+switch(S.view){case"dashboard":c.append(rDash());break;case"leaderboard":c.append(rLB());break;case"kids":c.append(rKids());break;case"school":c.append(rSchool());break;case"messages":c.append(rMessages());break;case"events":c.append(rEvents());break;case"grocery":c.append(rGrocery());break;case"meals":c.append(rMeals());break;case"table":c.append(rTable());break;case"calendar":c.append(rCal());break;case"kanban":c.append(rKanban());break;case"eisenhower":c.append(rEis());break;case"daily":c.append(rDaily());break;case"weekly":c.append(rWeekly());break}}
 $("hamburgerBtn").addEventListener("click",openSB);$("sidebarOverlay").addEventListener("click",closeSB);$("addTaskBtn").addEventListener("click",()=>{closeSB();taskMod(null)});$("addTaskBtn2").addEventListener("click",()=>taskMod(null));$("membersBtn").addEventListener("click",()=>{closeSB();membersMod()});$("reportBtn").addEventListener("click",()=>{closeSB();reportMod()});
 // Theme toggle
 if(localStorage.getItem("hive_theme")==="light"){document.body.classList.add("light");$("themeToggle").textContent="☀️"}
@@ -1001,8 +1139,8 @@ const mem={id:"m_"+currentUser.uid,name:currentUser.displayName||"Me",color:MC[M
 await db.collection("households").doc(hId).update({members:firebase.firestore.FieldValue.arrayUnion(mem),memberUids:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
 await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});
 // Switch to the new household
-if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
+S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
 householdId=hId;localStorage.setItem("hive_active_household",hId);
 ov_.remove();loadHousehold()
 }catch(e){errDiv.textContent=e.message;errDiv.classList.add("show")}
@@ -1041,8 +1179,8 @@ const data=ud.data()||{};
 const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.householdId))hIds.push(data.householdId);
 if(hIds.length<=1){alert("You only belong to one household. Join another household first using an invite code in Household Settings.");return}
 // Teardown current listeners
-if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.members=[];
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
+S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
 showHouseholdPicker(hIds)}
 
 let _hhSelectLoaded=false;
@@ -1076,8 +1214,8 @@ const val=this.value;
 if(val==="__join__"){this.value=householdId;joinHouseholdMod();return}
 if(val===householdId)return;
 // Switch household
-if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.members=[];_hhSelectLoaded=false;
+if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
+S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];_hhSelectLoaded=false;
 householdId=val;localStorage.setItem("hive_active_household",val);
 loadHousehold()});
 
@@ -1156,7 +1294,7 @@ sendNotif(cat.icon+" Event today: "+t.title,t.eventTime?("At "+t.eventTime):"All
 // Debounced render with notification hooks
 let _renderTimer=null;
 function debouncedRender(){if(_renderTimer)clearTimeout(_renderTimer);_renderTimer=setTimeout(()=>{_renderTimer=null;render()},50)}
-function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();let firstLoad=true;
+function loadHousehold(){if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();let firstLoad=true;
 householdUnsub=db.collection("households").doc(householdId).onSnapshot(doc=>{if(!doc.exists)return;currentHousehold=doc.data();S.members=currentHousehold.members||[];S.rewards=currentHousehold.rewards||[...DR];updateHouseholdSelect();
 if(deviceMemberName&&!S.members.find(m=>m.name===deviceMemberName)){clearDeviceMember()}
 const dm=getMe();if(dm&&dm.role==="child"&&firstLoad){S.view="kids";S.kidsFilter=dm.name}
@@ -1183,6 +1321,8 @@ checkNewMessages(newMsgs);
 _prevMsgIds=new Set(newMsgs.map(m=>m.id));
 S.messages=newMsgs;debouncedRender()})});
 walletUnsub=db.collection("households").doc(householdId).collection("wallet").onSnapshot(snap=>{S.wallet=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
+groceryUnsub=db.collection("households").doc(householdId).collection("grocery").onSnapshot(snap=>{S.grocery=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
+mealsUnsub=db.collection("households").doc(householdId).collection("meals").onSnapshot(snap=>{S.meals=snap.docs.map(d=>({id:d.id,...d.data()}));debouncedRender()});
 showScreen("app");updateNotifBtn()}
 
 function settingsMod(){const code=currentHousehold?.inviteCode||"------";const tCode=currentHousehold?.teacherInviteCode||"";
@@ -1193,7 +1333,7 @@ h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#22c55e",textTransform:"uppercase",marginBottom:"6px"}},"🍎 Teacher Invite Code"),h("div",{style:{fontSize:"11px",color:"#475569",marginBottom:"6px"}},"Share with teachers — they can only see School & Messages"),
 tCode?h("div",{},h("div",{className:"invite-code",style:{color:"#22c55e"}},tCode),h("button",{className:"copy-btn",style:{borderColor:"#22c55e",color:"#22c55e"},onClick:()=>{navigator.clipboard?.writeText(tCode)}},"📋 Copy Teacher Code")):h("button",{className:"bp",style:{background:"linear-gradient(135deg,#22c55e,#16a34a)",width:"100%"},onClick:genTeacherCode},"Generate Teacher Invite Code")),
 h("div",{style:{marginBottom:"20px"}},h("div",{style:{fontSize:"11px",fontWeight:600,color:"#64748b",textTransform:"uppercase",marginBottom:"6px"}},"Signed in as"),h("div",{style:{fontSize:"14px"}},currentUser?.displayName||""),h("div",{style:{fontSize:"12px",color:"#64748b"}},currentUser?.email||"")),
-h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{if(confirm("Leave this household? You can rejoin with the invite code.")){await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete(),householdIds:firebase.firestore.FieldValue.arrayRemove(householdId)});if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();localStorage.removeItem("hive_active_household");ov_.remove();showHouseholdSetup()}}},"Leave Household")));
+h("div",{style:{display:"flex",gap:"8px",flexWrap:"wrap"}},h("button",{className:"bs",style:{flex:1},onClick:()=>{auth.signOut();ov_.remove()}},"Sign Out"),h("button",{className:"bp",style:{flex:1,background:"linear-gradient(135deg,#f59e0b,#d97706)"},onClick:()=>{ov_.remove();switchHousehold()}},"🏠 Switch Household"),h("button",{className:"bs",style:{flex:1,borderColor:"#ef4444",color:"#ef4444"},onClick:async()=>{if(confirm("Leave this household? You can rejoin with the invite code.")){await db.collection("users").doc(currentUser.uid).update({householdId:firebase.firestore.FieldValue.delete(),householdIds:firebase.firestore.FieldValue.arrayRemove(householdId)});if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();localStorage.removeItem("hive_active_household");ov_.remove();showHouseholdSetup()}}},"Leave Household")));
 const m=h("div",{className:"modal",style:{maxWidth:"440px"}},h("div",{className:"mhd"},h("h3",{style:{margin:0}},"⚙️ Household Settings"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd);const ov_=showMod(m)}
 
 
