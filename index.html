@@ -1641,6 +1641,7 @@ if(S.activeClassroom==="__join__"){S.activeClassroom=S.classrooms[0]?.id;joinCla
 const cr=S.classrooms.find(c=>c.id===S.activeClassroom);
 if(!cr){w.append(h("div",{style:{color:"var(--mut)"}},"Select a classroom"));return w}
 const isTeacher=cr.teacherUid===currentUser?.uid;
+console.log("Classroom debug — teacherUid:",cr.teacherUid,"currentUid:",currentUser?.uid,"isTeacher:",isTeacher);
 const students=cr.students||[];
 // Header with info
 const info=h("div",{className:"dc",style:{marginBottom:"16px"}});
