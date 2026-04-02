@@ -810,17 +810,23 @@ function markRead(msgIds){if(!householdId||!currentUser||!msgIds.length)return;
 const unique=[...new Set(msgIds)].slice(0,50);
 const batch=db.batch();unique.forEach(id=>{batch.update(db.collection("households").doc(householdId).collection("messages").doc(id),{readBy:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)})});batch.commit().catch(()=>{})}
 function getDmId(a,b){return "dm_"+[a,b].sort().join("_")}
-function canSeeThread(tid,myName,myRole){if(tid==="general")return true;if(tid.startsWith("classroom_"))return true;if(tid.startsWith("dm_")){return tid.replace("dm_","").split("_").includes(myName)}return false}
+function canSeeThread(tid,myName,myRole){if(!tid)return false;if(tid==="general")return true;if(tid.startsWith("classroom_"))return true;if(tid.startsWith("student_"))return true;if(tid.startsWith("dm_")){const parts=tid.replace("dm_","").split("_");return myName&&parts.includes(myName)}return false}
 function rMessages(){const w=h("div",{style:{display:"flex",gap:"0",height:"calc(100vh - 140px)",minHeight:"400px"}});
 const myRole=getMyRole();const me=getMe();const myName=me?.name||"";
 // Build all possible threads
 const allThreads=[];
-allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6"});
-// Classroom threads — teachers can message students and vice versa
+allThreads.push({id:"general",label:"📢 Family Chat",sub:"All family members",icon:"📢",color:"#3b82f6",section:"family"});
+// Family DMs
+if(myName){S.members.filter(m=>m.name!==myName).forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m,section:"family"})})}
+// Classroom threads + individual student threads
 S.classrooms.forEach(cr=>{const isT=cr.teacherUid===currentUser?.uid;
-allThreads.push({id:"classroom_"+cr.id,label:"🏫 "+cr.name,sub:isT?"Message your students":"Message your teacher",icon:"🏫",color:"#8b5cf6"})});
-// DMs between family members
-S.members.filter(m=>m.name!==myName).forEach(m=>{allThreads.push({id:getDmId(myName,m.name),label:m.name,sub:"Direct message",icon:"💬",color:m.color||"#64748b",avatar:m})});
+console.log("Classroom thread:",cr.name,"isTeacher:",isT,"students:",cr.students?.length||0);
+allThreads.push({id:"classroom_"+cr.id,label:"🏫 "+cr.name,sub:isT?"Message whole class":"Class announcements",icon:"🏫",color:"#8b5cf6",section:"classroom"});
+// Teacher sees individual student threads
+if(isT&&cr.students&&cr.students.length){cr.students.forEach(st=>{
+allThreads.push({id:"student_"+cr.id+"_"+st.uid,label:"👤 "+st.name,sub:"Private message",icon:"👤",color:st.color||"#64748b",section:"classroom"})})}
+// Students/parents see a thread to message the teacher directly
+if(!isT){allThreads.push({id:"student_"+cr.id+"_"+(currentUser?.uid||""),label:"✉️ "+cr.teacherName,sub:"Private message",icon:"✉️",color:"#8b5cf6",section:"classroom"})}});
 const threads=allThreads.filter(t=>canSeeThread(t.id,myName,myRole));
 const activeThread=threads.find(t=>t.id===S.msgThread)?S.msgThread:(threads[0]?.id||"general");
 const threadMsgs=S.messages.filter(m=>m.thread===activeThread);
@@ -828,18 +834,23 @@ const unreadIds=threadMsgs.filter(m=>!m.readBy?.includes(currentUser?.uid)).map(
 if(unreadIds.length)setTimeout(()=>markRead(unreadIds),500);
 // === SIDEBAR ===
 const tl=h("div",{style:{width:"220px",flexShrink:0,borderRight:"1px solid var(--bdr)",overflowY:"auto",display:"flex",flexDirection:"column",gap:"2px",padding:"8px 10px 8px 0"}});
-tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"4px 12px 8px"}},"Conversations"));
-threads.forEach(t=>{const unread=S.messages.filter(m=>m.thread===t.id&&!m.readBy?.includes(currentUser?.uid)).length;
+tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"var(--mut)",textTransform:"uppercase",letterSpacing:"1px",padding:"4px 12px 8px"}},"Family"));
+const renderThread=(t)=>{const unread=S.messages.filter(m=>m.thread===t.id&&!m.readBy?.includes(currentUser?.uid)).length;
 const lastMsg=S.messages.filter(m=>m.thread===t.id).slice(-1)[0];
 const isActive=activeThread===t.id;
 const avDiv=t.avatar?avEl(t.avatar,28):h("span",{style:{fontSize:"16px",width:"28px",textAlign:"center",flexShrink:0}},t.icon);
-tl.append(h("button",{style:{width:"100%",textAlign:"left",padding:"8px 12px",borderRadius:"10px",border:"none",background:isActive?"#1e3a5f":"transparent",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",gap:"10px"},onClick:()=>{S.msgThread=t.id;S._showThreadList=false;render()}},
+return h("button",{style:{width:"100%",textAlign:"left",padding:"8px 12px",borderRadius:"10px",border:"none",background:isActive?"#1e3a5f":"transparent",cursor:"pointer",fontFamily:"inherit",transition:"all .15s",display:"flex",alignItems:"center",gap:"10px"},onClick:()=>{S.msgThread=t.id;S._showThreadList=false;render()}},
 avDiv,
 h("div",{style:{flex:1,minWidth:0}},
 h("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between"}},
 h("span",{style:{fontSize:"13px",fontWeight:isActive||unread?700:500,color:isActive?"#60a5fa":"var(--txt)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},t.label),
 unread?h("span",{style:{background:"#ef4444",color:"#fff",fontSize:"9px",fontWeight:700,padding:"1px 5px",borderRadius:"8px",minWidth:"16px",textAlign:"center",flexShrink:0}},String(unread)):null),
-lastMsg?h("div",{style:{fontSize:"10px",color:"var(--mut)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},lastMsg.sender+": "+lastMsg.text.substring(0,30)):h("div",{style:{fontSize:"10px",color:"#334155"}},"No messages yet"))))});
+lastMsg?h("div",{style:{fontSize:"10px",color:"var(--mut)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}},lastMsg.sender+": "+lastMsg.text.substring(0,30)):h("div",{style:{fontSize:"10px",color:"#334155"}},"No messages yet")))};
+threads.filter(t=>t.section==="family").forEach(t=>tl.append(renderThread(t)));
+const crThreads=threads.filter(t=>t.section==="classroom");
+if(crThreads.length){
+tl.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#8b5cf6",textTransform:"uppercase",letterSpacing:"1px",padding:"12px 12px 8px"}},"🏫 Classrooms"));
+crThreads.forEach(t=>tl.append(renderThread(t)))}
 w.append(tl);
 // === CHAT ===
 const chatArea=h("div",{style:{flex:1,display:"flex",flexDirection:"column",minWidth:0}});
@@ -891,7 +902,7 @@ chatArea.append(compose);w.append(chatArea);
 const isMobile=window.innerWidth<=768;
 if(isMobile){tl.style.display=S._showThreadList!==false?"flex":"none";tl.style.width="100%";tl.style.padding="8px";tl.style.borderRight="none";chatArea.style.display=S._showThreadList!==false?"none":"flex";
 if(S._showThreadList===false){chatArea.firstChild.prepend(h("button",{style:{background:"none",border:"none",color:"var(--blue)",fontSize:"12px",fontWeight:600,cursor:"pointer",fontFamily:"inherit",padding:"0",marginRight:"12px"},onClick:()=>{S._showThreadList=true;render()}},"← Back"))}
-threads.forEach((_,i)=>{const idx=i+1;const btn=tl.children[idx];if(btn){const oc=btn.onclick;btn.onclick=()=>{S._showThreadList=false;oc?.()}}})}
+threads.forEach(t=>{const btns=Array.from(tl.querySelectorAll("button"));const btn=btns.find(b=>b.textContent.includes(t.label));if(btn){const oc=btn.onclick;btn.onclick=()=>{S._showThreadList=false;oc?.()}}})}
 return w}
 function rEvents(){const tdy=td();const fm=S.evFlt||"all";const fc=S.evCat||"all";
 const allEv=S.tasks.filter(t=>t.isGeneralEvent);
@@ -1436,7 +1447,7 @@ if(!canSeeThread(m.thread,me.name,me.role||"parent"))return;
 const mentionsMe=m.mentions?.includes(me.name);
 const isDM=m.thread.startsWith("dm_")&&m.thread.includes(me.name);
 const isUrgent=m.urgent;
-const isClassroomThread=m.thread.startsWith("classroom_");
+const isClassroomThread=m.thread.startsWith("classroom_")||m.thread.startsWith("student_");
 // Notify for: urgent messages, @mentions, DMs, or classroom messages
 if(isUrgent||mentionsMe||isDM||isClassroomThread){
 const prefix=isUrgent?"🚨 URGENT: ":mentionsMe?"@"+me.name+": ":"";
