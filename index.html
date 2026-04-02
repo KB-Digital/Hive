@@ -723,7 +723,7 @@ if(doneTasks.length>0){w.append(h("div",{style:{fontSize:"14px",fontWeight:600,c
 // Empty state
 if(totalToday===0){w.append(h("div",{style:{textAlign:"center",padding:"40px 20px"}},h("div",{style:{fontSize:"64px",marginBottom:"12px"}},"🎉"),h("div",{style:{fontSize:"20px",fontWeight:700}},"No tasks today!"),h("div",{style:{fontSize:"14px",color:"var(--mut)",marginTop:"6px"}},"Enjoy your free time")))}
 return w}
-function rSchool(){const tdy=td();let fm=S.sFlt||"all",fs=S.sSt||"all";const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent);const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent);const fil=st.filter(t=>fm==="all"||t.owner===fm).filter(t=>fs==="all"||t.status===fs).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+function rSchool(){const tdy=td();let fm=S.sFlt||"all",fs=S.sSt||"all";const st=S.tasks.filter(t=>t.category==="School & Assignments"&&!t.isEvent);const ev=S.tasks.filter(t=>t.category==="School & Assignments"&&t.isEvent);const fil=st.filter(t=>fm==="all"||t.owner===fm).filter(t=>fs==="all"||t.status===fs).sort((a,b)=>(a.dueDate||"").localeCompare(b.dueDate||""));
 const filEv=ev.filter(t=>fm==="all"||t.owner===fm).sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
 const tot=st.length,dn=st.filter(t=>t.status==="Complete").length,ovd=st.filter(t=>t.status!=="Complete"&&t.dueDate<tdy).length,upc=st.filter(t=>t.status!=="Complete"&&t.dueDate>=tdy).length;
 const w=h("div");
@@ -746,7 +746,8 @@ w.append(btnRow);
 w.append(h("div",{style:{fontSize:"13px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"10px",display:"flex",alignItems:"center",gap:"8px"}},h("span",{},"📝"),h("span",{},"Assignments"+(fil.length?" ("+fil.length+")":""))));
 if(fil.length){const cards=h("div",{style:{display:"flex",flexDirection:"column",gap:"8px"}});fil.forEach(t=>{const mc=gm(t.owner);const io=t.status!=="Complete"&&t.dueDate<tdy;const ids=!io&&t.status!=="Complete"&&t.dueDate<=new Date(Date.now()+2*864e5).toISOString().split("T")[0];
 const card=h("div",{style:{background:"#0f1729",border:"1px solid #1e293b",borderLeft:"4px solid "+(io?"#ef4444":ids?"#f97316":PC[t.priority]),borderRadius:"10px",padding:"14px"}},
-h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"8px"}},h("div",{style:{flex:1}},h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},t.title),t.points?h("span",{className:"ptb",style:{fontSize:"10px",padding:"1px 7px"}},"⭐ "+t.points):null),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
+h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"8px"}},h("div",{style:{flex:1}},h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},t.title),t.points?h("span",{className:"ptb",style:{fontSize:"10px",padding:"1px 7px"}},"⭐ "+t.points):null,
+t.classroomName?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🏫 "+t.classroomName):null),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
 h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"8px",flexWrap:"wrap"}},
 h("div",{style:{display:"inline-flex",alignItems:"center",gap:"4px"}},h("span",{style:{width:"18px",height:"18px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"#fff"}},t.owner.charAt(0)),h("span",{style:{fontSize:"11px",color:"#94a3b8"}},t.owner)),
 h("span",{style:{fontSize:"11px",color:io?"#ef4444":ids?"#f97316":"#94a3b8",fontWeight:io||ids?600:400}},"📅 "+fd(t.dueDate,{weekday:"short",month:"short",day:"numeric"})+(io?" — OVERDUE":"")+(ids?" — Due Soon":"")),
@@ -1475,9 +1476,8 @@ if(idx>=0)S.classrooms[idx]={id:crId,...doc.data()};
 else S.classrooms.push({id:crId,...doc.data()});
 debouncedRender()});
 classroomUnsubs.push(unsub2);
-// Also listen to ALL classrooms this student is in (not just the active one) for sync
+// Also listen to ALL classrooms this user is in for sync
 S.classrooms.forEach(cr=>{
-if(cr.teacherUid===currentUser?.uid)return;
 if(cr.id===crId)return;
 const u=db.collection("classrooms").doc(cr.id).collection("assignments").onSnapshot(()=>{syncClassroomToFamily()});
 classroomUnsubs.push(u)})}
@@ -1486,24 +1486,28 @@ let _syncing=false;
 async function syncClassroomToFamily(){
 if(!householdId||!currentUser||_syncing)return;
 const me=getMe();if(!me)return;
+if(!S.classrooms.length)return;
 _syncing=true;
 try{
 for(const cr of S.classrooms){
-if(cr.teacherUid===currentUser.uid)continue;
-const snap=await db.collection("classrooms").doc(cr.id).collection("assignments").get();
-for(const doc of snap.docs){
-const a=doc.data();
-// Re-read current tasks to avoid stale state
-const existing=S.tasks.find(t=>t.classroomTaskId===doc.id&&t.classroomId===cr.id);
+// Fetch assignments from classroom
+let snap;
+try{snap=await db.collection("classrooms").doc(cr.id).collection("assignments").get()}catch(e){console.log("Sync fetch error for "+cr.name+":",e);continue}
+if(!snap||!snap.docs.length)continue;
+for(const adoc of snap.docs){
+const a=adoc.data();
+// Check if already synced to family
+const existing=S.tasks.find(t=>t.classroomTaskId===adoc.id&&t.classroomId===cr.id);
 if(!existing){
-await db.collection("households").doc(householdId).collection("tasks").add({
+try{await db.collection("households").doc(householdId).collection("tasks").add({
 title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:"Urgent",importance:"Important",
 status:"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
 points:a.points||20,completedBy:"",recurring:"none",
-classroomTaskId:doc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||""
-})}else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
-await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
-title:a.title,description:a.description||"",dueDate:a.dueDate||""})}}}
+classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||""
+});console.log("✅ Synced: "+a.title+" | owner: "+me.name+" | category: School & Assignments | dueDate: "+a.dueDate)}catch(e){console.error("Sync write error:",e)}
+}else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
+try{await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
+title:a.title,description:a.description||"",dueDate:a.dueDate||""})}catch(e){console.error("Sync update error:",e)}}}}
 }catch(e){console.error("Classroom sync error:",e)}
 _syncing=false}
 async function syncStatusToClassroom(task){
