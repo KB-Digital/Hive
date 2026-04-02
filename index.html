@@ -479,6 +479,8 @@ const GEC_MAP=Object.fromEntries(GEN_EVENT_CATS.map(c=>[c.id,c]));
 const AISLES=[{id:"produce",label:"Produce",icon:"🥬",color:"#22c55e"},{id:"dairy",label:"Dairy & Eggs",icon:"🥛",color:"#60a5fa"},{id:"meat",label:"Meat & Seafood",icon:"🥩",color:"#ef4444"},{id:"bakery",label:"Bakery & Bread",icon:"🍞",color:"#f59e0b"},{id:"frozen",label:"Frozen",icon:"🧊",color:"#06b6d4"},{id:"pantry",label:"Pantry & Canned",icon:"🥫",color:"#f97316"},{id:"snacks",label:"Snacks & Drinks",icon:"🥤",color:"#a855f7"},{id:"household",label:"Household",icon:"🧹",color:"#64748b"},{id:"other",label:"Other",icon:"📦",color:"#94a3b8"}];
 const AISLE_MAP=Object.fromEntries(AISLES.map(a=>[a.id,a]));
 const MEAL_SLOTS=["Breakfast","Lunch","Dinner","Snack"];
+const SUBJECTS=[{id:"math",label:"Math",icon:"🔢",color:"#3b82f6"},{id:"reading",label:"Reading",icon:"📖",color:"#22c55e"},{id:"science",label:"Science",icon:"🔬",color:"#06b6d4"},{id:"writing",label:"Writing",icon:"✏️",color:"#f59e0b"},{id:"history",label:"History",icon:"🏛️",color:"#f97316"},{id:"art",label:"Art",icon:"🎨",color:"#ec4899"},{id:"music",label:"Music",icon:"🎵",color:"#a855f7"},{id:"pe",label:"P.E.",icon:"🏃",color:"#ef4444"},{id:"language",label:"Language",icon:"🌍",color:"#8b5cf6"},{id:"tech",label:"Technology",icon:"💻",color:"#64748b"},{id:"other",label:"Other",icon:"📌",color:"#94a3b8"}];
+const SUBJECT_MAP=Object.fromEntries(SUBJECTS.map(s=>[s.id,s]));
 function eventMod(evt){if(evt&&evt.id){genEventMod(evt)}else{genEventMod({title:"",eventCategory:"school",dueDate:td(),description:"",owner:S.members.find(m=>m.name==="Kids")?.name||S.members[0]?.name||"Me",isEvent:true,isGeneralEvent:true,category:"Events",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",points:0,completedBy:"",recurring:"none",eventTime:"",eventLocation:""})}}
 function genEventMod(evt){const isE=!!evt&&!!evt.id;const f=evt?{...evt}:{title:"",eventCategory:"appointment",dueDate:td(),endDate:"",description:"",owner:S.members[0]?.name||"Me",isEvent:true,isGeneralEvent:true,category:"Events",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",points:0,completedBy:"",recurring:"none",eventTime:"",eventLocation:""};
 if(!f.eventCategory)f.eventCategory="other";if(!f.eventTime)f.eventTime="";if(!f.eventLocation)f.eventLocation="";if(!f.endDate)f.endDate="";if(!f.recurring)f.recurring="none";
@@ -768,7 +770,8 @@ w.append(h("div",{style:{fontSize:"13px",fontWeight:700,color:"#94a3b8",textTran
 if(fil.length){const cards=h("div",{style:{display:"flex",flexDirection:"column",gap:"8px"}});fil.forEach(t=>{const mc=gm(t.owner);const io=t.status!=="Complete"&&t.dueDate<tdy;const ids=!io&&t.status!=="Complete"&&t.dueDate<=new Date(Date.now()+2*864e5).toISOString().split("T")[0];
 const card=h("div",{style:{background:"#0f1729",border:"1px solid #1e293b",borderLeft:"4px solid "+(io?"#ef4444":ids?"#f97316":PC[t.priority]),borderRadius:"10px",padding:"14px"}},
 h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"8px"}},h("div",{style:{flex:1}},h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},t.title),t.points?h("span",{className:"ptb",style:{fontSize:"10px",padding:"1px 7px"}},"⭐ "+t.points):null,
-t.classroomName?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🏫 "+t.classroomName):null),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
+t.classroomName?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🏫 "+t.classroomName):null,
+(()=>{const subj=t.classroomSubject?SUBJECT_MAP[t.classroomSubject]:null;return subj?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:subj.color+"22",color:subj.color,border:"1px solid "+subj.color+"33",fontWeight:600}},subj.icon+" "+subj.label):null})()),t.description?h("div",{style:{fontSize:"12px",color:"#64748b",marginTop:"2px"}},t.description):null),h("div",{style:{display:"flex",alignItems:"center",gap:"4px",flexShrink:0}},h("button",{className:"ib",onClick:()=>addToCal(t),title:"Add to Calendar"},"📅"),h("button",{className:"ib",onClick:()=>taskMod(t)},"✏️"),h("button",{className:"dx",onClick:()=>delTask(t.id)},"✕"))),
 h("div",{style:{display:"flex",alignItems:"center",gap:"10px",marginTop:"8px",flexWrap:"wrap"}},
 h("div",{style:{display:"inline-flex",alignItems:"center",gap:"4px"}},h("span",{style:{width:"18px",height:"18px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"#fff"}},t.owner.charAt(0)),h("span",{style:{fontSize:"11px",color:"#94a3b8"}},t.owner)),
 h("span",{style:{fontSize:"11px",color:io?"#ef4444":ids?"#f97316":"#94a3b8",fontWeight:io||ids?600:400}},"📅 "+fd(t.dueDate,{weekday:"short",month:"short",day:"numeric"})+(io?" — OVERDUE":"")+(ids?" — Due Soon":"")),
@@ -1549,7 +1552,7 @@ const taskData={
 title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:isEvt?"Not Urgent":"Urgent",importance:"Important",
 status:isEvt?"Not Started":"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
 points:isEvt?0:(a.points||20),completedBy:"",recurring:"none",
-classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||""
+classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||"",classroomSubject:a.subject||""
 };
 if(isEvt){taskData.isEvent=true;taskData.eventTime=a.eventTime||"";taskData.eventCategory="school"}
 try{await db.collection("households").doc(householdId).collection("tasks").add(taskData);
@@ -1641,7 +1644,7 @@ const ov_=showMod(m);setTimeout(()=>inp.focus(),100)}
 
 function classroomAssignMod(existing,crId){
 const isE=!!existing;
-const f=existing?{...existing}:{title:"",description:"",dueDate:td(),points:20,priority:"Medium"};
+const f=existing?{...existing}:{title:"",description:"",dueDate:td(),points:20,priority:"Medium",subject:"other"};
 const bd=h("div",{className:"mbd"});
 const ti=h("input",{type:"text",className:"fi",value:f.title,placeholder:"Assignment title",onChange:e=>{f.title=e.target.value}});
 const desc=h("textarea",{className:"fi",value:f.description||"",placeholder:"Instructions or details...",rows:3,style:{resize:"vertical"},onChange:e=>{f.description=e.target.value}});
@@ -1649,11 +1652,13 @@ const dateInp=h("input",{type:"date",className:"fi",value:f.dueDate,onChange:e=>
 const ptsInp=h("input",{type:"number",className:"fi",value:String(f.points||20),min:"0",onChange:e=>{f.points=parseInt(e.target.value)||0}});
 const prioSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.priority=e.target.value}});
 PRIORITIES.forEach(p=>{const o=h("option",{value:p},p);if(p===f.priority)o.selected=true;prioSel.append(o)});
+const subjSel=h("select",{className:"ss",style:{width:"100%"},onChange:e=>{f.subject=e.target.value}});
+SUBJECTS.forEach(s=>{const o=h("option",{value:s.id},s.icon+" "+s.label);if(s.id===(f.subject||"other"))o.selected=true;subjSel.append(o)});
 bd.append(
 h("div",{className:"fg"},h("label",{},"Assignment Title"),ti),
+h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Subject"),subjSel),h("div",{className:"fg"},h("label",{},"Priority"),prioSel)),
 h("div",{className:"fg"},h("label",{},"Description / Instructions"),desc),
-h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Due Date"),dateInp),h("div",{className:"fg"},h("label",{},"Points"),ptsInp)),
-h("div",{className:"fg"},h("label",{},"Priority"),prioSel));
+h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Due Date"),dateInp),h("div",{className:"fg"},h("label",{},"Points"),ptsInp)));
 const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
 h("div",{className:"mhd"},h("h3",{style:{margin:0}},isE?"✏️ Edit Assignment":"📝 Add Assignment"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
 h("div",{className:"mft"},
@@ -1662,7 +1667,7 @@ db.collection("classrooms").doc(crId).collection("assignments").doc(existing.id)
 h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
 h("button",{className:"bp",onClick:()=>{if(!f.title.trim())return;
 const ac=db.collection("classrooms").doc(crId).collection("assignments");
-const data={title:f.title,description:f.description,dueDate:f.dueDate,points:f.points,priority:f.priority};
+const data={title:f.title,description:f.description,dueDate:f.dueDate,points:f.points,priority:f.priority,subject:f.subject||"other"};
 if(isE){ac.doc(existing.id).update(data)}else{ac.add({...data,studentStatus:{},createdAt:firebase.firestore.FieldValue.serverTimestamp()})}
 ov_.remove()}},(isE?"Save":"Add")+" Assignment")));
 const ov_=showMod(m);setTimeout(()=>ti.focus(),100)}
@@ -1779,8 +1784,11 @@ if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20
 assignments.forEach(a=>{
 const card=h("div",{style:{background:"var(--ibg)",border:"1px solid var(--ib)",borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
 const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>classroomAssignMod(a,cr.id)});
+const subj=SUBJECT_MAP[a.subject]||SUBJECT_MAP.other;
 hdr.append(h("div",{},
-h("div",{style:{fontWeight:700,fontSize:"15px"}},a.title),
+h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:subj.color+"22",color:subj.color,border:"1px solid "+subj.color+"33",fontWeight:600}},subj.icon+" "+subj.label),
+h("span",{style:{fontWeight:700,fontSize:"15px"}},a.title)),
 h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",alignItems:"center",gap:"8px"}},
 a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
 a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
