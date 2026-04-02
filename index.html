@@ -1544,12 +1544,16 @@ for(const adoc of snap.docs){
 const a=adoc.data();
 const existing=S.tasks.find(t=>t.classroomTaskId===adoc.id&&t.classroomId===cr.id);
 if(!existing){
-try{await db.collection("households").doc(householdId).collection("tasks").add({
-title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:"Urgent",importance:"Important",
-status:"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
-points:a.points||20,completedBy:"",recurring:"none",
+const isEvt=a.isEvent||false;
+const taskData={
+title:a.title,description:a.description||"",priority:a.priority||"Medium",urgency:isEvt?"Not Urgent":"Urgent",importance:"Important",
+status:isEvt?"Not Started":"Not Started",category:"School & Assignments",owner:me.name,dueDate:a.dueDate||"",
+points:isEvt?0:(a.points||20),completedBy:"",recurring:"none",
 classroomTaskId:adoc.id,classroomId:cr.id,classroomName:cr.name||"",teacherName:cr.teacherName||""
-});console.log("✅ Synced: "+a.title+" | owner: "+me.name+" | category: School & Assignments | dueDate: "+a.dueDate)}catch(e){console.error("Sync write error:",e)}
+};
+if(isEvt){taskData.isEvent=true;taskData.eventTime=a.eventTime||"";taskData.eventCategory="school"}
+try{await db.collection("households").doc(householdId).collection("tasks").add(taskData);
+console.log("✅ Synced "+(isEvt?"event":"assignment")+": "+a.title+" | owner: "+me.name)}catch(e){console.error("Sync write error:",e)}
 }else if(existing.title!==a.title||existing.dueDate!==a.dueDate||existing.description!==(a.description||"")){
 try{await db.collection("households").doc(householdId).collection("tasks").doc(existing.id).update({
 title:a.title,description:a.description||"",dueDate:a.dueDate||""})}catch(e){console.error("Sync update error:",e)}}}
