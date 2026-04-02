@@ -270,7 +270,7 @@ const ROOMS=["Any Room","Kitchen","Bathroom","Bedroom","Living Room","Dining Roo
 const PC={Critical:"#ef4444",High:"#f97316",Medium:"#3b82f6",Low:"#22c55e"};
 const SC={"Not Started":"#64748b","In Progress":"#3b82f6",Complete:"#22c55e",Blocked:"#ef4444"};
 const MC=["#3b82f6","#f97316","#22c55e","#a855f7","#ef4444","#eab308","#06b6d4","#ec4899","#14b8a6","#f43f5e"];
-const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"classroom",label:"Classroom",icon:"🏫"},{id:"filter",label:"Filter",icon:"🔍"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
+const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",label:"Points",icon:"🏆"},{id:"kids",label:"Kids",icon:"🧸"},{id:"school",label:"School",icon:"📚"},{id:"classroom",label:"Classroom",icon:"🏫"},{id:"messages",label:"Messages",icon:"💬"},{id:"events",label:"Events",icon:"🗓️"},{id:"grocery",label:"Grocery",icon:"🛒"},{id:"meals",label:"Meals",icon:"🍽️"},{id:"filter",label:"Filter",icon:"🔍"},{id:"table",label:"Table",icon:"📋"},{id:"calendar",label:"Calendar",icon:"📅"},{id:"kanban",label:"Kanban",icon:"🗂️"},{id:"eisenhower",label:"Eisenhower",icon:"🎯"},{id:"daily",label:"Daily",icon:"☀️"},{id:"weekly",label:"Weekly",icon:"🗓️"}];
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
@@ -1663,6 +1663,31 @@ if(isE){ac.doc(existing.id).update(data)}else{ac.add({...data,studentStatus:{},c
 ov_.remove()}},(isE?"Save":"Add")+" Assignment")));
 const ov_=showMod(m);setTimeout(()=>ti.focus(),100)}
 
+function classroomEventMod(existing,crId){
+const isE=!!existing;
+const f=existing?{...existing}:{title:"",description:"",dueDate:td(),eventTime:"",isEvent:true};
+const bd=h("div",{className:"mbd"});
+const ti=h("input",{type:"text",className:"fi",value:f.title,placeholder:"Event name (e.g. Field Trip, Parent-Teacher Conference)",onChange:e=>{f.title=e.target.value}});
+const desc=h("textarea",{className:"fi",value:f.description||"",placeholder:"Details or location...",rows:3,style:{resize:"vertical"},onChange:e=>{f.description=e.target.value}});
+const dateInp=h("input",{type:"date",className:"fi",value:f.dueDate,onChange:e=>{f.dueDate=e.target.value}});
+const timeInp=h("input",{type:"time",className:"fi",value:f.eventTime||"",onChange:e=>{f.eventTime=e.target.value}});
+bd.append(
+h("div",{className:"fg"},h("label",{},"Event Name"),ti),
+h("div",{className:"fg"},h("label",{},"Description / Location"),desc),
+h("div",{className:"fr"},h("div",{className:"fg"},h("label",{},"Date"),dateInp),h("div",{className:"fg"},h("label",{},"Time (optional)"),timeInp)));
+const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
+h("div",{className:"mhd"},h("h3",{style:{margin:0}},isE?"✏️ Edit Event":"🗓️ Add School Event"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
+h("div",{className:"mft"},
+isE?h("button",{className:"bs",style:{marginRight:"auto",borderColor:"#ef444444",color:"#ef4444"},onClick:()=>{
+db.collection("classrooms").doc(crId).collection("assignments").doc(existing.id).delete();ov_.remove()}},"🗑️ Delete"):null,
+h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
+h("button",{className:"bp",style:{background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>{if(!f.title.trim())return;
+const ac=db.collection("classrooms").doc(crId).collection("assignments");
+const data={title:f.title,description:f.description,dueDate:f.dueDate,eventTime:f.eventTime||"",points:0,priority:"Medium",isEvent:true,studentStatus:{}};
+if(isE){ac.doc(existing.id).update(data)}else{ac.add({...data,createdAt:firebase.firestore.FieldValue.serverTimestamp()})}
+ov_.remove()}},(isE?"Save":"Add")+" Event")));
+const ov_=showMod(m);setTimeout(()=>ti.focus(),100)}
+
 // ── Classroom View ──
 function rClassroom(){const w=h("div");
 if(!S.classrooms.length){
@@ -1702,6 +1727,7 @@ h("div",{style:{fontSize:"12px",color:"var(--mut)",marginTop:"2px"}},"Teacher: "
 if(isTeacher){
 infoRow.append(h("div",{style:{display:"flex",gap:"6px",flexWrap:"wrap"}},
 h("button",{className:"bp",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>classroomAssignMod(null,cr.id)},"📝 Add Assignment"),
+h("button",{className:"bp",style:{fontSize:"12px",padding:"6px 14px",background:"linear-gradient(135deg,#a855f7,#7c3aed)"},onClick:()=>classroomEventMod(null,cr.id)},"🗓️ Add Event"),
 h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px"},onClick:()=>{navigator.clipboard?.writeText(cr.classCode);alert("Classroom code copied: "+cr.classCode)}},"📋 Code: "+cr.classCode),
 h("button",{className:"bs",style:{fontSize:"12px",padding:"6px 14px",borderColor:"#ef444444",color:"#ef4444"},onClick:async()=>{if(!confirm("Remove classroom '"+cr.name+"'? All assignments will be deleted. Students will keep any synced tasks in their family app."))return;
 // Delete all assignments first
@@ -1745,17 +1771,23 @@ h("h3",{className:"dct",style:{marginBottom:0}},"📋 Assignments ("+assignments
 h("button",{className:"bp",style:{fontSize:"11px",padding:"4px 12px"},onClick:()=>classroomAssignMod(null,cr.id)},"+ Add")));
 if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments yet. Click '+ Add' to create one."))}
 assignments.forEach(a=>{
-const card=h("div",{style:{background:"var(--ibg)",border:"1px solid var(--ib)",borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
-const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>classroomAssignMod(a,cr.id)});
+const isEvt=a.isEvent;
+const card=h("div",{style:{background:isEvt?"#a855f711":"var(--ibg)",border:"1px solid "+(isEvt?"#a855f733":"var(--ib)"),borderRadius:"12px",padding:"14px",marginBottom:"8px"}});
+const hdr=h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"8px",cursor:"pointer"},onClick:()=>{isEvt?classroomEventMod(a,cr.id):classroomAssignMod(a,cr.id)}});
 hdr.append(h("div",{},
-h("div",{style:{fontWeight:700,fontSize:"15px"}},a.title),
+h("div",{style:{display:"flex",alignItems:"center",gap:"6px"}},
+isEvt?h("span",{style:{fontSize:"9px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",border:"1px solid #a855f733",fontWeight:600}},"🗓️ Event"):null,
+h("span",{style:{fontWeight:700,fontSize:"15px"}},a.title)),
 h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",alignItems:"center",gap:"8px"}},
 a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
-a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
-h("span",{style:{color:PC[a.priority]||"#64748b"}},a.priority))));
-hdr.append(h("button",{className:"ib",onClick:e=>{e.stopPropagation();classroomAssignMod(a,cr.id)}},"✏️"));
+a.eventTime?h("span",{},"🕐 "+a.eventTime):null,
+!isEvt&&a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points+" pts"):null,
+!isEvt?h("span",{style:{color:PC[a.priority]||"#64748b"}},a.priority):null)));
+hdr.append(h("button",{className:"ib",onClick:e=>{e.stopPropagation();isEvt?classroomEventMod(a,cr.id):classroomAssignMod(a,cr.id)}},"✏️"));
 card.append(hdr);
-// Student completion grid
+if(a.description){card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},a.description))}
+// Student completion grid (only for assignments, not events)
+if(!isEvt){
 const statuses=a.studentStatus||{};
 const completed=Object.values(statuses).filter(s=>s.status==="Complete").length;
 card.append(h("div",{style:{fontSize:"11px",color:"var(--mut)",marginBottom:"6px"}},"Completed: "+completed+"/"+students.length));
@@ -1764,15 +1796,30 @@ students.forEach(st=>{const stStat=statuses[st.uid];const isDone=stStat?.status=
 sGrid.append(h("div",{style:{display:"flex",alignItems:"center",gap:"4px",padding:"3px 8px",borderRadius:"8px",fontSize:"11px",fontWeight:500,background:isDone?"#22c55e18":isIP?"#f59e0b18":"var(--card)",border:"1px solid "+(isDone?"#22c55e44":isIP?"#f59e0b44":"var(--ib)"),color:isDone?"#22c55e":isIP?"#f59e0b":"var(--mut)"}},
 h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:st.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},st.name?.charAt(0)),
 st.name?.split(" ")[0],isDone?" ✓":isIP?" ⏳":""))});
-card.append(sGrid);ac.append(card)});
+card.append(sGrid)}
+ac.append(card)});
 w.append(ac)
 }else{
 // Student sees their assignments
 const ac=h("div",{className:"dc"},h("h3",{className:"dct"},"📋 My Assignments in "+cr.name));
 if(!assignments.length){ac.append(h("div",{style:{textAlign:"center",padding:"20px",color:"var(--mut)"}},"No assignments from this class yet."))}
 assignments.forEach(a=>{
+const isEvt=a.isEvent;
 const myStatus=a.studentStatus?.[currentUser?.uid];
 const isDone=myStatus?.status==="Complete";
+if(isEvt){
+// Event display - no checkbox, purple styling
+ac.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:"#a855f711",border:"1px solid #a855f733",borderLeft:"4px solid #a855f7",borderRadius:"10px",marginBottom:"6px"}},
+h("div",{style:{fontSize:"20px",flexShrink:0}},"🗓️"),
+h("div",{style:{flex:1}},
+h("div",{style:{fontWeight:600,fontSize:"14px",color:"var(--txt)"}},a.title),
+h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex",gap:"8px"}},
+a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
+a.eventTime?h("span",{},"🕐 "+a.eventTime):null,
+a.description?h("span",{},a.description.substring(0,50)+(a.description.length>50?"...":"")):null)),
+h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:"#a855f722",color:"#a855f7",fontWeight:600}},"Event")))}
+else{
+// Assignment display - with checkbox
 ac.append(h("div",{style:{display:"flex",alignItems:"center",gap:"12px",padding:"12px",background:isDone?"#22c55e08":"var(--ibg)",border:"1px solid "+(isDone?"#22c55e33":"var(--ib)"),borderLeft:"4px solid "+(PC[a.priority]||"#64748b"),borderRadius:"10px",marginBottom:"6px"}},
 h("div",{style:{width:"28px",height:"28px",borderRadius:"8px",border:"2px solid "+(isDone?"#22c55e":"var(--ib)"),background:isDone?"#22c55e":"transparent",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"14px",color:"#fff",cursor:"pointer",flexShrink:0},onClick:()=>{
 const newStatus=isDone?"Not Started":"Complete";
@@ -1784,7 +1831,7 @@ h("div",{style:{fontSize:"11px",color:"var(--mut)",marginTop:"2px",display:"flex
 a.dueDate?h("span",{},fd(a.dueDate,{month:"short",day:"numeric"})):null,
 a.points?h("span",{style:{color:"#eab308"}},"⭐ "+a.points):null,
 a.description?h("span",{},a.description.substring(0,50)+(a.description.length>50?"...":"")):null)),
-h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:(PC[a.priority]||"#64748b")+"22",color:PC[a.priority]||"#64748b",fontWeight:600}},a.priority)))});
+h("span",{style:{fontSize:"10px",padding:"2px 8px",borderRadius:"8px",background:(PC[a.priority]||"#64748b")+"22",color:PC[a.priority]||"#64748b",fontWeight:600}},a.priority)))}});
 w.append(ac)}
 return w}
 
