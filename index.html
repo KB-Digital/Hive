@@ -638,7 +638,7 @@ const atc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className
 // Points Leaderboard
 const lc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"🏆 Points Leaderboard"),h("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"16px"}},"Points earned when tasks are marked Complete"));lb.forEach((m,i)=>lc.append(h("div",{className:"lr"},h("span",{className:"lrank"},md[i]||"#"+(i+1)),avEl(m,36),h("div",{style:{flex:1}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"3px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},m.name),h("span",{className:"ptb"},m.points+" pts")),h("div",{style:{height:"6px",background:"#1e293b",borderRadius:"3px",overflow:"hidden"}},h("div",{style:{width:(m.points/mp*100)+"%",height:"100%",background:m.color,borderRadius:"3px"}})),h("div",{style:{fontSize:"10px",color:"#64748b",marginTop:"2px"}},m.done+" task"+(m.done!==1?"s":"")+" completed")))));w.append(lc);
 // === BEHAVIOR SECTION ===
-const GOOD_BEHAVIORS=[
+const DEFAULT_GOOD=[
 {label:"Helpful",icon:"🤝",pts:5,desc:"Helped without being asked"},
 {label:"Kind",icon:"💛",pts:5,desc:"Kind words or actions"},
 {label:"Respectful",icon:"🙏",pts:5,desc:"Respectful to others"},
@@ -647,7 +647,7 @@ const GOOD_BEHAVIORS=[
 {label:"Sharing",icon:"🎁",pts:3,desc:"Shared with others"},
 {label:"Great Attitude",icon:"😊",pts:5,desc:"Positive attitude"},
 {label:"Above & Beyond",icon:"🚀",pts:10,desc:"Went above and beyond"}];
-const BAD_BEHAVIORS=[
+const DEFAULT_BAD=[
 {label:"Rude",icon:"😤",pts:-5,desc:"Rude or disrespectful"},
 {label:"Not Listening",icon:"🙉",pts:-3,desc:"Didn't listen"},
 {label:"Arguing",icon:"💢",pts:-3,desc:"Arguing or talking back"},
@@ -656,10 +656,47 @@ const BAD_BEHAVIORS=[
 {label:"Lying",icon:"🤥",pts:-5,desc:"Caught lying"},
 {label:"Screen Time Violation",icon:"📵",pts:-5,desc:"Broke screen time rules"},
 {label:"Tantrum",icon:"🌪️",pts:-5,desc:"Had a tantrum"}];
+const GOOD_BEHAVIORS=currentHousehold?.goodBehaviors||DEFAULT_GOOD;
+const BAD_BEHAVIORS=currentHousehold?.badBehaviors||DEFAULT_BAD;
+function behaviorEditMod(){
+let good=[...((currentHousehold?.goodBehaviors||DEFAULT_GOOD).map(b=>({...b})))];
+let bad=[...((currentHousehold?.badBehaviors||DEFAULT_BAD).map(b=>({...b})))];
+const bd=h("div",{className:"mbd"});
+function rr(){bd.innerHTML="";
+bd.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#22c55e",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"👍 Good Behaviors"));
+good.forEach((b,i)=>{bd.append(h("div",{style:{display:"flex",alignItems:"center",gap:"6px",marginBottom:"6px"}},
+h("input",{type:"text",className:"fi",value:b.icon,style:{width:"36px",textAlign:"center",padding:"4px",fontSize:"16px"},onInput:e=>{good[i].icon=e.target.value}}),
+h("input",{type:"text",className:"fi",value:b.label,style:{flex:1,padding:"4px 8px",fontSize:"12px"},onInput:e=>{good[i].label=e.target.value}}),
+h("input",{type:"number",className:"fi",value:String(b.pts),style:{width:"50px",padding:"4px 6px",fontSize:"12px",textAlign:"center"},onInput:e=>{good[i].pts=parseInt(e.target.value)||0}}),
+h("span",{style:{fontSize:"10px",color:"#22c55e",flexShrink:0}},"pts"),
+h("button",{className:"dx",onClick:()=>{good.splice(i,1);rr()}},"✕")))});
+bd.append(h("button",{className:"bs",style:{fontSize:"11px",padding:"4px 12px",marginBottom:"16px"},onClick:()=>{good.push({label:"New",icon:"✨",pts:5,desc:""});rr()}},"+ Add Good Behavior"));
+bd.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#ef4444",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"👎 Needs Improvement"));
+bad.forEach((b,i)=>{bd.append(h("div",{style:{display:"flex",alignItems:"center",gap:"6px",marginBottom:"6px"}},
+h("input",{type:"text",className:"fi",value:b.icon,style:{width:"36px",textAlign:"center",padding:"4px",fontSize:"16px"},onInput:e=>{bad[i].icon=e.target.value}}),
+h("input",{type:"text",className:"fi",value:b.label,style:{flex:1,padding:"4px 8px",fontSize:"12px"},onInput:e=>{bad[i].label=e.target.value}}),
+h("input",{type:"number",className:"fi",value:String(b.pts),style:{width:"50px",padding:"4px 6px",fontSize:"12px",textAlign:"center"},onInput:e=>{bad[i].pts=parseInt(e.target.value)||0}}),
+h("span",{style:{fontSize:"10px",color:"#ef4444",flexShrink:0}},"pts"),
+h("button",{className:"dx",onClick:()=>{bad.splice(i,1);rr()}},"✕")))});
+bd.append(h("button",{className:"bs",style:{fontSize:"11px",padding:"4px 12px",marginBottom:"8px"},onClick:()=>{bad.push({label:"New",icon:"⚠️",pts:-3,desc:""});rr()}},"+ Add Bad Behavior"));
+bd.append(h("div",{style:{marginTop:"8px"}},h("button",{className:"bs",style:{fontSize:"11px",padding:"4px 12px"},onClick:()=>{
+db.collection("households").doc(householdId).update({goodBehaviors:DEFAULT_GOOD,badBehaviors:DEFAULT_BAD}).then(()=>{ov_.remove();render()})}},"↩️ Reset to Defaults")))}
+rr();
+const m=h("div",{className:"modal",style:{maxWidth:"480px"}},
+h("div",{className:"mhd"},h("h3",{style:{margin:0}},"✏️ Edit Behaviors"),h("button",{className:"ib",onClick:()=>ov_.remove()},"✕")),bd,
+h("div",{className:"mft"},h("button",{className:"bs",onClick:()=>ov_.remove()},"Cancel"),
+h("button",{className:"bp",onClick:()=>{
+good.forEach(b=>{if(!b.desc)b.desc=b.label;if(b.pts<0)b.pts=Math.abs(b.pts)});
+bad.forEach(b=>{if(!b.desc)b.desc=b.label;if(b.pts>0)b.pts=-Math.abs(b.pts)});
+db.collection("households").doc(householdId).update({goodBehaviors:good,badBehaviors:bad}).then(()=>{ov_.remove();render()})
+}},"Save")));
+const ov_=showMod(m)}
 const bc=h("div",{className:"dc",style:{marginBottom:"16px"}});
 bc.append(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
 h("h3",{className:"dct",style:{marginBottom:0}},"🌟 Behavior Points"),
-h("div",{style:{fontSize:"11px",color:"#64748b"}},"Tap a behavior, then pick a kid")));
+h("div",{style:{display:"flex",alignItems:"center",gap:"8px"}},
+h("div",{style:{fontSize:"11px",color:"#64748b"}},"Tap a behavior, then pick a kid"),
+isParent()?h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:behaviorEditMod},"✏️ Edit"):null)));
 // Positive behaviors
 bc.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#22c55e",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"👍 Good Behavior"));
 const goodGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"6px",marginBottom:"16px"}});
