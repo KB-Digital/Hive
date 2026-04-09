@@ -637,6 +637,79 @@ function rLB(){const lb=S.members.map(m=>({...m,points:gPts(m.name),allTime:gAll
 const atc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"⭐ All-Time Points"));const atg=h("div",{style:{display:"flex",gap:"10px",flexWrap:"wrap"}});[...lb].sort((a,b)=>b.allTime-a.allTime).forEach((m,i)=>{const card=h("div",{style:{flex:1,minWidth:"100px",background:"#1e293b",borderRadius:"10px",padding:"12px 14px",textAlign:"center",border:i===0?"1px solid #eab30844":"1px solid #334155"}},h("div",{style:{fontSize:"20px",marginBottom:"4px"}},md[i]||"#"+(i+1)));const avWrap=h("div",{style:{display:"flex",justifyContent:"center",marginBottom:"6px"}});avWrap.append(avEl(m,36));card.append(avWrap,h("div",{style:{fontWeight:600,fontSize:"13px"}},m.name),h("div",{style:{fontSize:"18px",fontWeight:700,color:"#eab308",marginTop:"2px"}},String(m.allTime)),h("div",{style:{fontSize:"10px",color:"#64748b"}},"all-time pts"));atg.append(card)});atc.append(atg);w.append(atc);
 // Points Leaderboard
 const lc=h("div",{className:"dc",style:{marginBottom:"16px"}},h("h3",{className:"dct"},"🏆 Points Leaderboard"),h("div",{style:{fontSize:"11px",color:"#64748b",marginBottom:"16px"}},"Points earned when tasks are marked Complete"));lb.forEach((m,i)=>lc.append(h("div",{className:"lr"},h("span",{className:"lrank"},md[i]||"#"+(i+1)),avEl(m,36),h("div",{style:{flex:1}},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:"3px"}},h("span",{style:{fontWeight:600,fontSize:"14px"}},m.name),h("span",{className:"ptb"},m.points+" pts")),h("div",{style:{height:"6px",background:"#1e293b",borderRadius:"3px",overflow:"hidden"}},h("div",{style:{width:(m.points/mp*100)+"%",height:"100%",background:m.color,borderRadius:"3px"}})),h("div",{style:{fontSize:"10px",color:"#64748b",marginTop:"2px"}},m.done+" task"+(m.done!==1?"s":"")+" completed")))));w.append(lc);
+// === BEHAVIOR SECTION ===
+const GOOD_BEHAVIORS=[
+{label:"Helpful",icon:"🤝",pts:5,desc:"Helped without being asked"},
+{label:"Kind",icon:"💛",pts:5,desc:"Kind words or actions"},
+{label:"Respectful",icon:"🙏",pts:5,desc:"Respectful to others"},
+{label:"Responsible",icon:"⭐",pts:5,desc:"Showed responsibility"},
+{label:"Good Manners",icon:"🎩",pts:3,desc:"Said please/thank you"},
+{label:"Sharing",icon:"🎁",pts:3,desc:"Shared with others"},
+{label:"Great Attitude",icon:"😊",pts:5,desc:"Positive attitude"},
+{label:"Above & Beyond",icon:"🚀",pts:10,desc:"Went above and beyond"}];
+const BAD_BEHAVIORS=[
+{label:"Rude",icon:"😤",pts:-5,desc:"Rude or disrespectful"},
+{label:"Not Listening",icon:"🙉",pts:-3,desc:"Didn't listen"},
+{label:"Arguing",icon:"💢",pts:-3,desc:"Arguing or talking back"},
+{label:"Not Helpful",icon:"🚫",pts:-3,desc:"Refused to help"},
+{label:"Mean to Sibling",icon:"😠",pts:-5,desc:"Mean to brother/sister"},
+{label:"Lying",icon:"🤥",pts:-5,desc:"Caught lying"},
+{label:"Screen Time Violation",icon:"📵",pts:-5,desc:"Broke screen time rules"},
+{label:"Tantrum",icon:"🌪️",pts:-5,desc:"Had a tantrum"}];
+const bc=h("div",{className:"dc",style:{marginBottom:"16px"}});
+bc.append(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},
+h("h3",{className:"dct",style:{marginBottom:0}},"🌟 Behavior Points"),
+h("div",{style:{fontSize:"11px",color:"#64748b"}},"Tap a behavior, then pick a kid")));
+// Positive behaviors
+bc.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#22c55e",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"👍 Good Behavior"));
+const goodGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"6px",marginBottom:"16px"}});
+GOOD_BEHAVIORS.forEach(b=>{goodGrid.append(h("button",{style:{padding:"10px 6px",borderRadius:"10px",border:"1px solid #22c55e33",background:"#22c55e11",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",gap:"4px",transition:"all .15s"},onClick:()=>{
+const childMembers=S.members.filter(m=>m.role==="child");
+const names=childMembers.length?childMembers.map(m=>m.name):S.members.map(m=>m.name);
+if(!names.length)return;
+const pick=names.length===1?names[0]:prompt("Who gets "+b.icon+" "+b.label+"?\n\n"+names.join(", "));
+if(!pick||!names.map(n=>n.toLowerCase()).includes(pick.toLowerCase()))return;
+const matched=S.members.find(m=>m.name.toLowerCase()===pick.toLowerCase())?.name||pick;
+db.collection("households").doc(householdId).collection("tasks").add({
+title:b.icon+" "+b.label,priority:"Low",urgency:"Not Urgent",importance:"Not Important",
+status:"Complete",category:"Kids & Family",owner:matched,dueDate:td(),
+description:b.desc,points:b.pts,completedBy:"",recurring:"none",isBehavior:true,behaviorType:"good"
+})}},
+h("span",{style:{fontSize:"20px"}},b.icon),
+h("span",{style:{fontSize:"11px",fontWeight:600,color:"#22c55e"}},b.label),
+h("span",{style:{fontSize:"10px",color:"#22c55e88"}},"+"+b.pts+" pts")))});
+bc.append(goodGrid);
+// Negative behaviors
+bc.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#ef4444",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"👎 Needs Improvement"));
+const badGrid=h("div",{style:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(100px,1fr))",gap:"6px",marginBottom:"16px"}});
+BAD_BEHAVIORS.forEach(b=>{badGrid.append(h("button",{style:{padding:"10px 6px",borderRadius:"10px",border:"1px solid #ef444433",background:"#ef444411",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center",gap:"4px",transition:"all .15s"},onClick:()=>{
+const childMembers=S.members.filter(m=>m.role==="child");
+const names=childMembers.length?childMembers.map(m=>m.name):S.members.map(m=>m.name);
+if(!names.length)return;
+const pick=names.length===1?names[0]:prompt("Who loses points for "+b.icon+" "+b.label+"?\n\n"+names.join(", "));
+if(!pick||!names.map(n=>n.toLowerCase()).includes(pick.toLowerCase()))return;
+const matched=S.members.find(m=>m.name.toLowerCase()===pick.toLowerCase())?.name||pick;
+db.collection("households").doc(householdId).collection("tasks").add({
+title:b.icon+" "+b.label,priority:"Low",urgency:"Not Urgent",importance:"Not Important",
+status:"Complete",category:"Kids & Family",owner:matched,dueDate:td(),
+description:b.desc,points:b.pts,completedBy:"",recurring:"none",isBehavior:true,behaviorType:"bad"
+})}},
+h("span",{style:{fontSize:"20px"}},b.icon),
+h("span",{style:{fontSize:"11px",fontWeight:600,color:"#ef4444"}},b.label),
+h("span",{style:{fontSize:"10px",color:"#ef444488"}},b.pts+" pts")))});
+bc.append(badGrid);
+// Recent behavior log
+const recentBehavior=S.tasks.filter(t=>t.isBehavior).sort((a,b)=>(b.dueDate||"").localeCompare(a.dueDate||"")).slice(0,10);
+if(recentBehavior.length){
+bc.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"📜 Recent Behavior"));
+recentBehavior.forEach(t=>{const mc=gm(t.owner);const isGood=t.points>0;
+bc.append(h("div",{style:{display:"flex",alignItems:"center",gap:"10px",padding:"6px 10px",borderBottom:"1px solid #1e293b44",fontSize:"12px"}},
+h("span",{style:{width:"22px",height:"22px",borderRadius:"50%",background:mc?.color||"#64748b",display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"9px",fontWeight:700,color:"#fff",flexShrink:0}},t.owner?.charAt(0)||"?"),
+h("span",{style:{flex:1,color:"#e2e8f0"}},t.title),
+h("span",{style:{fontWeight:700,color:isGood?"#22c55e":"#ef4444",fontSize:"13px"}},(isGood?"+":"")+t.points),
+h("span",{style:{fontSize:"10px",color:"#475569"}},fd(t.dueDate,{month:"short",day:"numeric"})),
+h("button",{className:"dx",style:{fontSize:"10px",opacity:.5},onClick:()=>delTask(t.id)},"✕")))})}
+w.append(bc);
 const rc=h("div",{className:"dc"},h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"12px"}},h("h3",{className:"dct",style:{marginBottom:0}},"🎁 Rewards Shop"),h("button",{className:"bs",style:{padding:"4px 12px",fontSize:"11px"},onClick:rewardsMod},"Edit Rewards")));const rg=h("div",{className:"rg"});S.rewards.forEach(rw=>{const ca=lb.filter(m=>m.points>=rw.pointsCost);const card=h("div",{className:"rc"},h("div",{className:"ri"},rw.icon),h("div",{className:"rn"},rw.name),h("div",{className:"rcost"},rw.pointsCost+" pts"));if(ca.length)ca.forEach(m=>card.append(h("button",{className:"clb",onClick:()=>{if(confirm(m.name+' claims "'+rw.name+'" for '+rw.pointsCost+" pts?")){db.collection("households").doc(householdId).collection("tasks").add({title:"🎁 Claimed: "+rw.name,priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Complete",category:"Kids & Family",owner:m.name,dueDate:td(),description:"Reward redeemed",points:-rw.pointsCost,completedBy:"",recurring:"none"})}}},h("span",{style:{width:"14px",height:"14px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"7px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name+" can claim")));else card.append(h("div",{style:{fontSize:"10px",color:"#475569",marginTop:"6px"}},"Not enough points yet"));rg.append(card)});rc.append(rg);w.append(rc);
 // === WALLET SECTION ===
 const rate=getExchangeRate();
