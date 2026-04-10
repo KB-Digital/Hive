@@ -274,7 +274,7 @@ const VIEWS=[{id:"dashboard",label:"Dashboard",icon:"📊"},{id:"leaderboard",la
 const DM=[{id:"m1",name:"Me",color:"#3b82f6"},{id:"m2",name:"Partner",color:"#f97316"},{id:"m3",name:"Kids",color:"#22c55e"},{id:"m4",name:"Everyone",color:"#a855f7"}];
 const DR=[{id:"r1",name:"Pizza Night 🍕",pointsCost:100,icon:"🍕"},{id:"r2",name:"Movie Night 🎬",pointsCost:200,icon:"🎬"},{id:"r3",name:"Ice Cream Trip 🍦",pointsCost:75,icon:"🍦"},{id:"r4",name:"Sleep In Pass 😴",pointsCost:50,icon:"😴"},{id:"r5",name:"Pick Dinner 🍽️",pointsCost:60,icon:"🍽️"},{id:"r6",name:"Screen Time +1hr 📱",pointsCost:80,icon:"📱"}];
 const ST=[{id:1,title:"Deep clean kitchen",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Cleaning & Organizing",owner:"Me",dueDate:"2026-03-30",description:"Scrub counters, clean oven, mop floor",points:40,completedBy:""},{id:2,title:"Fix leaky faucet",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Home Maintenance",owner:"Partner",dueDate:"2026-03-31",description:"Bathroom sink faucet dripping",points:30,completedBy:""},{id:3,title:"Grocery shopping",priority:"High",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Errands & Shopping",owner:"Me",dueDate:"2026-03-30",description:"Weekly groceries",points:25,completedBy:""},{id:4,title:"Mow the lawn",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Not Started",category:"Yard & Outdoor",owner:"Partner",dueDate:"2026-04-02",description:"Front and back yard",points:20,completedBy:""},{id:5,title:"Organize garage",priority:"Low",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-05",description:"Sort tools, donate unused items",points:15,completedBy:""},{id:6,title:"Meal prep Sunday",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Cooking & Meals",owner:"Me",dueDate:"2026-03-29",description:"Prep lunches for the week",points:30,completedBy:""},{id:7,title:"Kids homework help",priority:"Critical",urgency:"Urgent",importance:"Important",status:"In Progress",category:"Kids & Family",owner:"Me",dueDate:"2026-03-30",description:"Science project due Wednesday",points:35,completedBy:""},{id:8,title:"Walk the dog",priority:"High",urgency:"Urgent",importance:"Important",status:"Complete",category:"Pets",owner:"Kids",dueDate:"2026-03-30",description:"Morning and evening walks",points:20,completedBy:""},{id:9,title:"Pay electric bill",priority:"Critical",urgency:"Urgent",importance:"Important",status:"Not Started",category:"Finance & Admin",owner:"Me",dueDate:"2026-03-31",description:"Due by end of month",points:25,completedBy:""},{id:10,title:"Clean bathrooms",priority:"Medium",urgency:"Not Urgent",importance:"Important",status:"Blocked",category:"Cleaning & Organizing",owner:"Everyone",dueDate:"2026-04-01",description:"Need more cleaning supplies",points:20,completedBy:""},{id:11,title:"Vacuum whole house",priority:"Medium",urgency:"Not Urgent",importance:"Not Important",status:"Not Started",category:"Cleaning & Organizing",owner:"Kids",dueDate:"2026-04-03",description:"All rooms including stairs",points:15,completedBy:""},{id:12,title:"Schedule vet appointment",priority:"Low",urgency:"Not Urgent",importance:"Important",status:"In Progress",category:"Pets",owner:"Partner",dueDate:"2026-04-07",description:"Annual checkup for Max",points:10,completedBy:""}];
-let S={tasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],schoolClasses:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",schoolClassFilter:"all"};
+let S={tasks:[],allTasks:[],members:[],rewards:[],messages:[],wallet:[],grocery:[],meals:[],schoolClasses:[],view:"dashboard",calM:new Date().getMonth(),calY:new Date().getFullYear(),dDay:new Date().toISOString().split("T")[0],wk:(()=>{const d=new Date();d.setDate(d.getDate()-d.getDay());return d.toISOString().split("T")[0]})(),dm:"all",ts:"dueDate",td:"asc",dFlt:"all",wFlt:"all",sFlt:"all",sSt:"all",evFlt:"all",evCat:"all",msgThread:"general",mealWk:null,fvStatus:"all",fvOwner:"all",fvDate:"all",fvPriority:"all",fvCategory:"all",fvSort:"dueDate",fvDir:"asc",schoolClassFilter:"all"};
 let currentUser=null,currentHousehold=null,householdId=null,tasksUnsub=null,householdUnsub=null,msgsUnsub=null,walletUnsub=null,groceryUnsub=null,mealsUnsub=null;
 const auth=firebase.auth(),db=firebase.firestore();
 // Enable offline persistence — cached data serves reads locally, drastically reducing Firebase reads
@@ -350,9 +350,18 @@ const ov_=showMod(m)}
 function getMemberRole(name){const m=gm(name);return m?.role||"parent"}
 function addToCal(task){const d=task.dueDate.replace(/-/g,"");const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Hive//Task//EN","BEGIN:VEVENT","DTSTART;VALUE=DATE:"+d,"DTEND;VALUE=DATE:"+d,"SUMMARY:"+task.title,"DESCRIPTION:"+(task.description||"")+" ["+task.priority+"] Owner: "+task.owner+(task.points?" | "+task.points+" pts":""),"STATUS:"+(task.status==="Complete"?"COMPLETED":"NEEDS-ACTION"),"END:VEVENT","END:VCALENDAR"].join("\r\n");const blob=new Blob([ics],{type:"text/calendar;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=task.title.replace(/[^a-zA-Z0-9]/g,"-")+".ics";document.body.append(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function tpdBadge(task){const tpd=task.timesPerDay||1;if(tpd<=1)return null;const ct=task.completedToday||0;const done=task.status==="Complete"?tpd:ct;const allDone=done>=tpd;return h("button",{style:{display:"inline-flex",alignItems:"center",gap:"4px",padding:"2px 8px",borderRadius:"10px",border:"1px solid "+(allDone?"#22c55e44":"#f59e0b44"),background:allDone?"#22c55e18":"#f59e0b18",color:allDone?"#22c55e":"#f59e0b",fontSize:"11px",fontWeight:700,cursor:allDone?"default":"pointer",fontFamily:"inherit"},onClick:()=>{if(!allDone)quickComplete(task.id)}},allDone?"✓ "+tpd+"/"+tpd:done+"/"+tpd+" ✓ tap")}
-const gPts=(name)=>S.tasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.completedBy?t.completedBy===name:t.owner===name)).reduce((s,t)=>s+(t.points||0),0);
-const gAllTime=(name)=>S.tasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.points||0)>0&&(t.completedBy?t.completedBy===name:t.owner===name)).reduce((s,t)=>s+(t.points||0),0);
-const gDone=(name)=>S.tasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.points||0)>0&&(t.completedBy?t.completedBy===name:t.owner===name)).length;
+const gPts=(name)=>S.allTasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.completedBy?t.completedBy===name:t.owner===name)).reduce((s,t)=>s+(t.points||0),0);
+const gAllTime=(name)=>S.allTasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.points||0)>0&&(t.completedBy?t.completedBy===name:t.owner===name)).reduce((s,t)=>s+(t.points||0),0);
+const gDone=(name)=>S.allTasks.filter(t=>t.status==="Complete"&&!t.pendingApproval&&(t.points||0)>0&&(t.completedBy?t.completedBy===name:t.owner===name)).length;
+const activeTasks=()=>S.allTasks.filter(t=>!t.archived);
+let _archiveRan=false;
+function autoArchive(){if(!householdId||_archiveRan)return;_archiveRan=true;
+const twoDaysAgo=new Date(Date.now()-2*24*60*60*1000).toISOString().split("T")[0];
+const toArchive=S.allTasks.filter(t=>t.status==="Complete"&&!t.archived&&!t.pendingApproval&&t.dueDate&&t.dueDate<twoDaysAgo);
+if(!toArchive.length)return;
+const batch=db.batch();
+toArchive.forEach(t=>{batch.update(db.collection("households").doc(householdId).collection("tasks").doc(t.id),{archived:true})});
+batch.commit().catch(e=>console.error("Archive error:",e))}
 function oChip(tid,own,sm){const m=gm(own);const c=m?.color||"#64748b";const sz=sm?14:18;const ch=h("div",{className:"oc"+(sm?" sm":""),style:{background:`color-mix(in srgb,${c} 15%,#0f1729)`,borderColor:`color-mix(in srgb,${c} 25%,transparent)`}},avEl(m||{name:own,color:c},sz));const sel=h("select",{className:"ocs",onChange:()=>{db.collection("households").doc(householdId).collection("tasks").doc(tid).update({owner:sel.value})}});const eo=h("option",{value:"Everyone"},"Everyone");if(own==="Everyone")eo.selected=true;sel.append(eo);S.members.forEach(m=>{const o=h("option",{value:m.name},m.name);if(m.name===own)o.selected=true;sel.append(o)});ch.append(sel);return ch}
 function memberFilter(current,onChange){const bar=h("div",{className:"flt-bar"});bar.append(h("button",{className:"flt-btn",style:{borderColor:current==="all"?"#3b82f6":"",background:current==="all"?"#1e3a5f22":"",color:current==="all"?"#60a5fa":""},onClick:()=>onChange("all")},"All"));S.members.forEach(m=>bar.append(h("button",{className:"flt-btn",style:{borderColor:current===m.name?m.color+"66":"",background:current===m.name?m.color+"18":"",color:current===m.name?"#e2e8f0":""},onClick:()=>onChange(m.name)},h("span",{style:{width:"16px",height:"16px",borderRadius:"50%",background:m.color,display:"inline-flex",alignItems:"center",justifyContent:"center",fontSize:"8px",fontWeight:700,color:"#fff"}},m.name.charAt(0)),m.name)));return bar}
 function setView(v){S.view=v;render();closeSB()}
@@ -763,7 +772,7 @@ h("span",{style:{fontSize:"11px",fontWeight:600,color:"#ef4444"}},b.label),
 h("span",{style:{fontSize:"10px",color:"#ef444488"}},b.pts+" pts")))});
 bc.append(badGrid);
 // Recent behavior log
-const recentBehavior=S.tasks.filter(t=>t.isBehavior).sort((a,b)=>(b.dueDate||"").localeCompare(a.dueDate||"")).slice(0,10);
+const recentBehavior=S.allTasks.filter(t=>t.isBehavior).sort((a,b)=>(b.dueDate||"").localeCompare(a.dueDate||"")).slice(0,10);
 if(recentBehavior.length){
 bc.append(h("div",{style:{fontSize:"11px",fontWeight:700,color:"#94a3b8",textTransform:"uppercase",letterSpacing:"1px",marginBottom:"8px"}},"📜 Recent Behavior"));
 recentBehavior.forEach(t=>{const mc=gm(t.owner);const isGood=t.points>0;
@@ -1463,7 +1472,7 @@ await db.collection("households").doc(hId).update({members:firebase.firestore.Fi
 await db.collection("users").doc(currentUser.uid).set({householdId:hId,householdIds:firebase.firestore.FieldValue.arrayUnion(hId),name:currentUser.displayName,email:currentUser.email},{merge:true});
 // Switch to the new household
 if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
+S.tasks=[];S.allTasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
 householdId=hId;localStorage.setItem("hive_active_household",hId);
 ov_.remove();loadHousehold()
 }catch(e){errDiv.textContent=e.message;errDiv.classList.add("show")}
@@ -1503,7 +1512,7 @@ const hIds=data.householdIds||[];if(data.householdId&&!hIds.includes(data.househ
 if(hIds.length<=1){alert("You only belong to one household. Join another household first using an invite code in Household Settings.");return}
 // Teardown current listeners
 if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
+S.tasks=[];S.allTasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];
 showHouseholdPicker(hIds)}
 
 let _hhSelectLoaded=false;
@@ -1537,7 +1546,7 @@ if(val==="__join__"){this.value=householdId;joinHouseholdMod();return}
 if(val===householdId)return;
 // Switch household
 if(householdUnsub)householdUnsub();if(tasksUnsub)tasksUnsub();if(msgsUnsub)msgsUnsub();if(walletUnsub)walletUnsub();if(groceryUnsub)groceryUnsub();if(mealsUnsub)mealsUnsub();
-S.tasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];_hhSelectLoaded=false;
+S.tasks=[];S.allTasks=[];S.messages=[];S.wallet=[];S.grocery=[];S.meals=[];S.members=[];_hhSelectLoaded=false;
 householdId=val;localStorage.setItem("hive_active_household",val);
 loadHousehold()});
 
@@ -1626,7 +1635,10 @@ tasksUnsub=db.collection("households").doc(householdId).collection("tasks").onSn
 const newTasks=snap.docs.map(d=>({id:d.id,...d.data()}));
 checkNewTasks(newTasks);
 _prevTaskIds=new Set(newTasks.map(t=>t.id));
-S.tasks=newTasks;debouncedRender();
+S.allTasks=newTasks;
+S.tasks=newTasks.filter(t=>!t.archived);
+autoArchive();
+debouncedRender();
 if(!_notifReady)setTimeout(()=>{_notifReady=true},2000)});
 // Limit messages to last 200 to reduce reads — older messages aren't loaded
 msgsUnsub=db.collection("households").doc(householdId).collection("messages").orderBy("timestamp","desc").limit(200).onSnapshot(snap=>{
